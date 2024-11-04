@@ -17,9 +17,11 @@ public final class LifeNewPvE extends JavaPlugin implements Task {
 
     @Override
     public void onEnable() {
-
+        saveDefaultConfig();
         registerListeners();
         registerCommands();
+
+        MythicListener.reloadMythic(20);
     }
 
     private void registerListeners() {

@@ -1,8 +1,10 @@
 package net.azisaba.lifenewpve.listeners;
 
 import io.lumine.mythic.bukkit.events.MythicConditionLoadEvent;
+import io.lumine.mythic.bukkit.events.MythicMechanicLoadEvent;
 import net.azisaba.lifenewpve.LifeNewPvE;
 import net.azisaba.lifenewpve.mythicmobs.MythicInRadius;
+import net.azisaba.lifenewpve.mythicmobs.SetFallDistance;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
@@ -17,6 +19,7 @@ public class MythicListener implements Listener {
     public void initialize(LifeNewPvE plugin) {
         PluginManager pm = Bukkit.getPluginManager();
         pm.registerEvents(new MythicListener.Conditions(), plugin);
+        pm.registerEvents(new MythicListener.Mechanics(), plugin);
     }
 
     public static boolean isMythic() {
@@ -25,7 +28,7 @@ public class MythicListener implements Listener {
     }
 
     public static void reloadMythic(long delay) {
-        Bukkit.getOnlinePlayers().forEach(p -> p.sendMessage(Component.text("§a§lMythicMobsのリロードが行われいます。")));
+        call();
         JavaPlugin.getPlugin(LifeNewPvE.class).runSyncDelayed(()-> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "mm re -a"), delay);
     }
 
@@ -40,6 +43,17 @@ public class MythicListener implements Listener {
             String s = e.getConditionName();
             if (s.equalsIgnoreCase("mythicInRadius")) {
                 e.register(new MythicInRadius(e.getConfig()));
+            }
+        }
+    }
+
+    public static class Mechanics extends MythicListener {
+
+        @EventHandler
+        public void onMechanics(@NotNull MythicMechanicLoadEvent e) {
+            String s = e.getMechanicName();
+            if (s.equalsIgnoreCase("setFallDistance")) {
+                e.register(new SetFallDistance(e.getConfig()));
             }
         }
     }
