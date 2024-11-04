@@ -1,0 +1,42 @@
+name: LifeNewPvE
+version: '1.0.0'
+main: net.azisaba.lifenewpve.LifeNewPvE
+api-version: '1.21'
+
+depend:
+  - MythicMobs
+  - Multiverse-Core
+  - WorldGuard
+
+commands:
+  worldregen:
+    permission: lifenewpve.command.worldregen
+    aliases:
+      - wr
+      - worldRegen
+  worldcreate:
+    permission: lifenewpve.command.worldcreate
+    aliases:
+      - wc
+      - worldCreate
+  worldteleport:
+    permission: lifenewpve.command.worldteleport
+    aliases:
+      - wt
+      - worldTeleport
+      - wsp
+      - ws
+  spawn:
+    permission: lifenewpve.command.spawn
+    aliases:
+      - sp
+  setspawn:
+    permission: lifenewpve.command.setspawn
+    aliases:
+      - ss
+      - setSpawn
+
+permissions:
+  lifenewpve.reload.mythicmobs:
+    default: op
+    description: mythicmobsをリロードしたことを伝えるために使用する権限
