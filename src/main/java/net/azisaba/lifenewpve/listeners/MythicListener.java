@@ -1,6 +1,7 @@
 package net.azisaba.lifenewpve.listeners;
 
 import io.lumine.mythic.bukkit.events.MythicConditionLoadEvent;
+import io.lumine.mythic.bukkit.events.MythicDamageEvent;
 import io.lumine.mythic.bukkit.events.MythicMechanicLoadEvent;
 import net.azisaba.lifenewpve.LifeNewPvE;
 import net.azisaba.lifenewpve.mythicmobs.MythicInRadius;
@@ -8,6 +9,7 @@ import net.azisaba.lifenewpve.mythicmobs.SetFallDistance;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
@@ -20,6 +22,13 @@ public class MythicListener implements Listener {
         PluginManager pm = Bukkit.getPluginManager();
         pm.registerEvents(new MythicListener.Conditions(), plugin);
         pm.registerEvents(new MythicListener.Mechanics(), plugin);
+        pm.registerEvents(new MythicListener.Damage(), plugin);
+    }
+
+    public static double damageMath(double damage, double a, double t) {
+        double armor = a + t * 2;
+        double f = 1 + damage;
+        return damage / (armor + f) * damage;
     }
 
     public static boolean isMythic() {
@@ -55,6 +64,17 @@ public class MythicListener implements Listener {
             if (s.equalsIgnoreCase("setFallDistance")) {
                 e.register(new SetFallDistance(e.getConfig()));
             }
+        }
+    }
+
+    public static class Damage extends MythicListener {
+
+        @EventHandler(priority = EventPriority.LOWEST)
+        public void onDamage(@NotNull MythicDamageEvent e) {
+            double a = e.getTarget().getArmor();
+            double t = e.getTarget().getArmorToughness();
+
+            e.setDamage(damageMath(e.getDamage(), a, t));
         }
     }
 }
