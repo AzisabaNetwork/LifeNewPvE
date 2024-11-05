@@ -5,7 +5,7 @@ import io.lumine.mythic.bukkit.events.MythicDamageEvent;
 import io.lumine.mythic.bukkit.events.MythicMechanicLoadEvent;
 import net.azisaba.lifenewpve.LifeNewPvE;
 import net.azisaba.lifenewpve.mythicmobs.MythicInRadius;
-import net.azisaba.lifenewpve.mythicmobs.Rotate;
+import net.azisaba.lifenewpve.mythicmobs.addYaw;
 import net.azisaba.lifenewpve.mythicmobs.SetFallDistance;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -65,8 +65,8 @@ public class MythicListener implements Listener {
             String s = e.getMechanicName();
             if (s.equalsIgnoreCase("setFallDistance")) {
                 e.register(new SetFallDistance(e.getConfig()));
-            } else if (s.equalsIgnoreCase("rotate")) {
-                e.register(new Rotate(e.getConfig()));
+            } else if (s.equalsIgnoreCase("addYaw")) {
+                e.register(new addYaw(e.getConfig()));
             }
         }
     }

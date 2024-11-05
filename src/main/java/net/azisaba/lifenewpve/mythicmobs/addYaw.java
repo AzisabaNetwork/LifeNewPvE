@@ -10,31 +10,26 @@ import io.lumine.mythic.api.skills.placeholders.PlaceholderString;
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
-public class Rotate implements ISkillMechanic, ITargetedEntitySkill {
+public class addYaw implements ISkillMechanic, ITargetedEntitySkill {
 
     private final float yaw;
 
-    public Rotate(@NotNull MythicLineConfig config) {
+    public addYaw(@NotNull MythicLineConfig config) {
         this.yaw = Float.parseFloat(PlaceholderString.of(config.getString(new String[]{"y", "yaw", "v", "value"}, "0")).get());
     }
 
     @Override
     public SkillResult castAtEntity(SkillMetadata skillMetadata, @NotNull AbstractEntity abstractEntity) {
         Entity entity = abstractEntity.getBukkitEntity();
-        entity.setRotation(fixYaw(yaw), entity.getPitch());
+        if (entity == null) return SkillResult.CONDITION_FAILED;
+        try {
+            entity.setRotation(fixYaw(entity.getYaw()), entity.getPitch());
+        } catch (Exception ignored) {
+        }
         return SkillResult.SUCCESS;
     }
 
-    private float fixYaw(float yaw) {
-        if (yaw > 180 || yaw < -180) {
-            float fix = yaw % 360;
-            if (fix > 180) {
-                fix -= 360;
-            } else if (fix < -180) {
-                fix += 360;
-            }
-            return fix;
-        }
-        return yaw;
+    private float fixYaw(float base) {
+        return Float.isNaN(base) ? yaw : yaw + base;
     }
 }
