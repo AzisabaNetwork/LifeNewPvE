@@ -58,7 +58,11 @@ public class WorldRegenCommand implements TabExecutor {
             player.sendMessage("§b§lワールドリジェネレーションが開始されました。");
             player.performCommand("spawn");
         });
-        return false;
+        if (name.contains("resource")) {
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "mvdelete " + name);
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "mvconfirm");
+        }
+        return true;
     }
 
     @Override

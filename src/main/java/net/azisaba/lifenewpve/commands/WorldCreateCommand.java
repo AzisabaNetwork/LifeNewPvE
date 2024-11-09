@@ -88,7 +88,7 @@ public class WorldCreateCommand implements TabExecutor {
         for (int count = 0; count < args.length; count++) {
             if (args.length == count + 1 && args[count].isEmpty() && count > 2) {
                 if (args[count - 1].equals("-g")) {
-                    return List.of("Terra:OVERWORLD", "Terra:ORIGEN", "Terra:HYDRAXIA", "VoidWorldGenerator", "Terra:OVERWORLD_NO_CAVE");
+                    return List.of("Terra:OVERWORLD", "Terra:ORIGEN", "Terra:HYDRAXIA", "VoidWorldGenerator", "Terra:OVERWORLD_NO_CAVE", "LifeGen");
                 }
                 if (args[count - 1].equals("-t")) {
                     return List.of("NORMAL", "FLAT", "LARGE_BIOMES", "AMPLIFIED", "CUSTOM");
@@ -103,6 +103,9 @@ public class WorldCreateCommand implements TabExecutor {
                     return List.of("EASY", "NORMAL", "HARD");
                 }
             }
+        }
+        if (args.length == 1) {
+            return List.of("ワールド名を入力してください");
         }
         return null;
     }

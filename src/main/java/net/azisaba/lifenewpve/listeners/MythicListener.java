@@ -1,12 +1,13 @@
 package net.azisaba.lifenewpve.listeners;
 
+import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.bukkit.events.MythicConditionLoadEvent;
 import io.lumine.mythic.bukkit.events.MythicDamageEvent;
 import io.lumine.mythic.bukkit.events.MythicMechanicLoadEvent;
 import net.azisaba.lifenewpve.LifeNewPvE;
 import net.azisaba.lifenewpve.mythicmobs.MythicInRadius;
-import net.azisaba.lifenewpve.mythicmobs.addYaw;
 import net.azisaba.lifenewpve.mythicmobs.SetFallDistance;
+import net.azisaba.lifenewpve.mythicmobs.addYaw;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
@@ -27,10 +28,16 @@ public class MythicListener implements Listener {
     }
 
     public static double damageMath(double damage, double a, double t) {
-        if (damage == 0) return 0;
+        if (damage <= 0) return 0;
         double armor = a + t * 2;
+        if (armor < 0) {
+            return damage * Math.pow(1.025, Math.abs(armor));
+        } else {
+            damage *= Math.pow(0.9995, Math.abs(a));
+        }
         double f = 1 + damage;
-        return damage / (armor + f) * damage;
+        double math = Math.max(damage / (armor + f) * f, 0);
+        return Double.isInfinite(math) || Double.isNaN(math) ? damage : math;
     }
 
     public static boolean isMythic() {
@@ -75,9 +82,11 @@ public class MythicListener implements Listener {
 
         @EventHandler(priority = EventPriority.LOWEST)
         public void onDamage(@NotNull MythicDamageEvent e) {
-            double a = e.getTarget().getArmor();
-            double t = e.getTarget().getArmorToughness();
+            AbstractEntity ab = e.getTarget();
+            if (!ab.isDamageable() || !ab.isLiving()) return;
 
+            double a = ab.getArmor();
+            double t = ab.getArmorToughness();
             e.setDamage(damageMath(e.getDamage(), a, t));
         }
     }

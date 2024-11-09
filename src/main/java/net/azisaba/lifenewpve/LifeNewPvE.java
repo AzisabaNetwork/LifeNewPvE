@@ -2,13 +2,14 @@ package net.azisaba.lifenewpve;
 
 import com.onarandombox.MultiverseCore.MultiverseCore;
 import net.azisaba.lifenewpve.commands.*;
-import net.azisaba.lifenewpve.listeners.MultiverseListener;
-import net.azisaba.lifenewpve.listeners.MythicListener;
-import net.azisaba.lifenewpve.listeners.PlayerListener;
+import net.azisaba.lifenewpve.listeners.*;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.Difficulty;
 import org.bukkit.World;
 import org.bukkit.WorldType;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Objects;
@@ -22,12 +23,15 @@ public final class LifeNewPvE extends JavaPlugin implements Task {
         registerCommands();
 
         MythicListener.reloadMythic(20);
+        spawnNotification();
     }
 
     private void registerListeners() {
         new MythicListener().initialize(this);
         new MultiverseListener().initialize(this);
         new PlayerListener().initialize(this);
+        new EntityListener().initialize(this);
+        new WorldListener().initialize(this);
     }
 
     private void registerCommands() {
@@ -67,9 +71,24 @@ public final class LifeNewPvE extends JavaPlugin implements Task {
                MultiverseListener.settings(w, dif);
 
                if (MythicListener.isMythic()) {
-                   MythicListener.reloadMythic(20);
+                   MythicListener.reloadMythic(100);
                }
-           }, 80);
+           }, 20);
         }
+    }
+
+    private void spawnNotification() {
+        Component comp = Component.text("コマンド「/spawn」をすることでサーバーのスポーン地点へとテレポートできます。").clickEvent(ClickEvent.suggestCommand("/spawn"));
+        runAsyncTimer(()-> {
+            for (World world : Bukkit.getWorlds()) {
+                if (!world.getName().contains("resource")) continue;
+                for (Player player : world.getPlayers()) {
+                    if (WorldTeleportCommand.isTeleporting(player)) {
+                        player.sendMessage(comp);
+                        WorldTeleportCommand.clearTeleporting(player);
+                    }
+                }
+            }
+        }, 36000, 36000);
     }
 }
