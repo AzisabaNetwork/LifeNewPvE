@@ -33,23 +33,24 @@ public class EnchantListener implements Listener {
         @Contract(" -> new")
         private static Object[][] getEnchantmentUpGrades() {
             return new Object[][]{
-                    {Enchantment.UNBREAKING, new EnchantmentUpgrade(10, 0.5)},
                     {Enchantment.SHARPNESS, new EnchantmentUpgrade(20, 0.75)},
-                    {Enchantment.SMITE, new EnchantmentUpgrade(10, 0.4)},
-                    {Enchantment.SWEEPING_EDGE, new EnchantmentUpgrade(5, 0.3)},
-                    {Enchantment.POWER, new EnchantmentUpgrade(10, 0.4)},
+                    {Enchantment.UNBREAKING, new EnchantmentUpgrade(10, 0.6)},
+                    {Enchantment.SMITE, new EnchantmentUpgrade(10, 0.5)},
+                    {Enchantment.SWEEPING_EDGE, new EnchantmentUpgrade(5, 0.5)},
+                    {Enchantment.POWER, new EnchantmentUpgrade(10, 0.5)},
+                    {Enchantment.IMPALING, new EnchantmentUpgrade(10, 0.5)},
                     {Enchantment.RESPIRATION, new EnchantmentUpgrade(5, 0.4)},
-                    {Enchantment.LOOTING, new EnchantmentUpgrade(5, 0.2)},
+                    {Enchantment.LOOTING, new EnchantmentUpgrade(5, 0.4)},
                     {Enchantment.BANE_OF_ARTHROPODS, new EnchantmentUpgrade(10, 0.5)},
-                    {Enchantment.LURE, new EnchantmentUpgrade(5, 0.25)},
-                    {Enchantment.LUCK_OF_THE_SEA, new EnchantmentUpgrade(5, 0.35)},
-                    {Enchantment.THORNS, new EnchantmentUpgrade(5, 0.5)},
-                    {Enchantment.IMPALING, new EnchantmentUpgrade(10, 0.6)},
-                    {Enchantment.LOYALTY, new EnchantmentUpgrade(5, 0.3)},
-                    {Enchantment.RIPTIDE, new EnchantmentUpgrade(5, 0.2)},
-                    {Enchantment.FIRE_ASPECT, new EnchantmentUpgrade(5, 0.8)},
-                    {Enchantment.KNOCKBACK, new EnchantmentUpgrade(5, 0.3)},
-                    {Enchantment.FLAME, new EnchantmentUpgrade(5, 0.5)}
+                    {Enchantment.LURE, new EnchantmentUpgrade(5, 0.4)},
+                    {Enchantment.SHARPNESS, new EnchantmentUpgrade(5, 0.4)},
+                    {Enchantment.LUCK_OF_THE_SEA, new EnchantmentUpgrade(5, 0.4)},
+                    {Enchantment.THORNS, new EnchantmentUpgrade(5, 0.4)},
+                    {Enchantment.LOYALTY, new EnchantmentUpgrade(5, 0.4)},
+                    {Enchantment.RIPTIDE, new EnchantmentUpgrade(5, 0.4)},
+                    {Enchantment.FIRE_ASPECT, new EnchantmentUpgrade(5, 0.4)},
+                    {Enchantment.KNOCKBACK, new EnchantmentUpgrade(5, 0.4)},
+                    {Enchantment.FLAME, new EnchantmentUpgrade(5, 0.4)}
             };
         }
 
