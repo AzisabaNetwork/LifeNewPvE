@@ -42,7 +42,14 @@ public class EnchantListener implements Listener {
                     {Enchantment.LOOTING, new EnchantmentUpgrade(5, 0.2)},
                     {Enchantment.BANE_OF_ARTHROPODS, new EnchantmentUpgrade(10, 0.5)},
                     {Enchantment.LURE, new EnchantmentUpgrade(5, 0.25)},
-                    {Enchantment.LUCK_OF_THE_SEA, new EnchantmentUpgrade(5, 0.35)}
+                    {Enchantment.LUCK_OF_THE_SEA, new EnchantmentUpgrade(5, 0.35)},
+                    {Enchantment.THORNS, new EnchantmentUpgrade(5, 0.5)},
+                    {Enchantment.IMPALING, new EnchantmentUpgrade(10, 0.6)},
+                    {Enchantment.LOYALTY, new EnchantmentUpgrade(5, 0.3)},
+                    {Enchantment.RIPTIDE, new EnchantmentUpgrade(5, 0.2)},
+                    {Enchantment.FIRE_ASPECT, new EnchantmentUpgrade(5, 0.8)},
+                    {Enchantment.KNOCKBACK, new EnchantmentUpgrade(5, 0.3)},
+                    {Enchantment.FLAME, new EnchantmentUpgrade(5, 0.5)}
             };
         }
 
