@@ -32,6 +32,8 @@ public final class LifeNewPvE extends JavaPlugin implements Task {
         new PlayerListener().initialize(this);
         new EntityListener().initialize(this);
         new WorldListener().initialize(this);
+        new EnchantListener().initialize(this);
+        new PrepareListener(this).initialize();
     }
 
     private void registerCommands() {
