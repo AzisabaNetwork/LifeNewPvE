@@ -1,13 +1,17 @@
 package net.azisaba.lifenewpve.listeners;
 
 import net.azisaba.lifenewpve.LifeNewPvE;
+import net.azisaba.lifenewpve.VectorTask;
 import net.azisaba.lifenewpve.commands.WorldTeleportCommand;
 import org.bukkit.Bukkit;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.PluginManager;
 import org.jetbrains.annotations.NotNull;
@@ -18,6 +22,20 @@ public class PlayerListener implements Listener {
         pm.registerEvents(new PlayerListener.Command(), lifeNewPvE);
         pm.registerEvents(new PlayerListener.Quit(), lifeNewPvE);
         pm.registerEvents(new PlayerListener.ChangeWorld(), lifeNewPvE);
+        pm.registerEvents(new PlayerListener.Interact(), lifeNewPvE);
+    }
+
+    public static class Interact extends PlayerListener implements VectorTask {
+
+        @EventHandler
+        public void onInteract(@NotNull PlayerInteractEvent e) {
+            if (!e.getAction().equals(Action.PHYSICAL)) return;
+            Block block = e.getClickedBlock();
+            if (block == null) return;
+            Player player = e.getPlayer();
+            applyVelocityAndRunTask(player, player, getVector(block, player));
+
+        }
     }
 
     public static class Quit extends PlayerListener {
