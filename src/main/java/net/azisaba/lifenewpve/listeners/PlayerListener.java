@@ -27,6 +27,7 @@ public class PlayerListener implements Listener {
         pm.registerEvents(new PlayerListener.Command(), lifeNewPvE);
         pm.registerEvents(new PlayerListener.Interact(), lifeNewPvE);
         pm.registerEvents(new PlayerListener.Quit(), lifeNewPvE);
+        pm.registerEvents(new PlayerListener.ChangeWorld(), lifeNewPvE);
     }
 
     public static class Quit extends PlayerListener {
@@ -37,7 +38,7 @@ public class PlayerListener implements Listener {
         }
     }
 
-    public static class ChangeWorld extends WorldListener {
+    public static class ChangeWorld extends PlayerListener {
 
         @EventHandler
         public void onWorldChange(@NotNull PlayerChangedWorldEvent e) {
