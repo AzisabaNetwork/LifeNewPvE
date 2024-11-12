@@ -35,23 +35,18 @@ public class WorldListener implements Listener {
 
             @Override
             public void populate(@NotNull WorldInfo worldInfo, @NotNull Random random, int chunkX, int chunkZ, @NotNull LimitedRegion limitedRegion) {
-                if ((chunkX == 0 || chunkX == -1) && (chunkZ == 0 || chunkZ == -1)) {
-                    for (int x = 0; x < 16; x++) {
-                        for (int z = 0; z < 16; z++) {
-                            for (int y = worldInfo.getMinHeight(); y < worldInfo.getMaxHeight(); y++) {
+                if (!((chunkX == 0 || chunkX == -1) && (chunkZ == 0 || chunkZ == -1))) return;
+                for (int x = 0; x < 16; x++) {
+                    for (int z = 0; z < 16; z++) {
+                        for (int y = worldInfo.getMinHeight(); y < worldInfo.getMaxHeight(); y++) {
 
-                                Material m = Material.BEDROCK;
-                                if (y >= 64) {
-                                    m = Material.AIR;
-                                }
-                                limitedRegion.setBlockData(x + chunkX * 16, y, z + chunkZ * 16, m.createBlockData());
+                            Material m = Material.BEDROCK;
+                            if (y >= 64) {
+                                m = Material.AIR;
                             }
+                            limitedRegion.setBlockData(x + chunkX * 16, y, z + chunkZ * 16, m.createBlockData());
                         }
                     }
-                    limitedRegion.setBlockData(0, 63, 0, Material.CRAFTING_TABLE.createBlockData());
-                    limitedRegion.setBlockData(-1, 63, 0, Material.CRAFTING_TABLE.createBlockData());
-                    limitedRegion.setBlockData(0, 63, -1, Material.CRAFTING_TABLE.createBlockData());
-                    limitedRegion.setBlockData(-1, 63, -1, Material.CRAFTING_TABLE.createBlockData());
                 }
             }
         }
