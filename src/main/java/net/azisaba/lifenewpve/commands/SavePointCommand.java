@@ -44,6 +44,7 @@ public class SavePointCommand implements TabExecutor {
     }
 
     public static void updateTags(@NotNull LifeNewPvE plugin) {
+        TAGS.clear();
         plugin.runAsync(() -> {
             ConfigurationSection savePointSection = plugin.getConfig().getConfigurationSection("SavePoint");
             if (savePointSection == null) return;
