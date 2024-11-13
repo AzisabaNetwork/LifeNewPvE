@@ -19,10 +19,11 @@ public interface VectorTask {
         } else if (b.getType() == Material.HEAVY_WEIGHTED_PRESSURE_PLATE) {
             return p.getEyeLocation().getDirection().clone().normalize().multiply(4).setY(3);
         }
-        return new Vector(0, 0, 0);
+        return null;
     }
 
     default void applyVelocityAndRunTask(LivingEntity livingEntity, Player player, Vector vector) {
+        if (vector == null) return;
         applyVelocityWithSound(livingEntity, player, vector);
 
         AtomicBoolean cancel = new AtomicBoolean(false);
