@@ -24,6 +24,11 @@ public final class LifeNewPvE extends JavaPlugin implements Task {
 
         MythicListener.reloadMythic(20);
         spawnNotification();
+        updatePointData();
+    }
+
+    private void updatePointData() {
+        SavePointCommand.updateTags(this);
     }
 
     private void registerListeners() {
@@ -42,6 +47,7 @@ public final class LifeNewPvE extends JavaPlugin implements Task {
         Objects.requireNonNull(getCommand("worldteleport")).setExecutor(new WorldTeleportCommand());
         Objects.requireNonNull(getCommand("spawn")).setExecutor(new SpawnCommand(this));
         Objects.requireNonNull(getCommand("setspawn")).setExecutor(new SetSpawnCommand(this));
+        Objects.requireNonNull(getCommand("savepoint")).setExecutor(new SavePointCommand(this));
     }
 
     @Override

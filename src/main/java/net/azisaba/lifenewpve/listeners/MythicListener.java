@@ -5,6 +5,8 @@ import io.lumine.mythic.bukkit.events.MythicConditionLoadEvent;
 import io.lumine.mythic.bukkit.events.MythicDamageEvent;
 import io.lumine.mythic.bukkit.events.MythicMechanicLoadEvent;
 import net.azisaba.lifenewpve.LifeNewPvE;
+import net.azisaba.lifenewpve.mythicmobs.ContainRegion;
+import net.azisaba.lifenewpve.mythicmobs.FromSurface;
 import net.azisaba.lifenewpve.mythicmobs.MythicInRadius;
 import net.azisaba.lifenewpve.mythicmobs.SetFallDistance;
 import net.kyori.adventure.text.Component;
@@ -50,7 +52,7 @@ public class MythicListener implements Listener {
     }
 
     public static void call() {
-        Bukkit.getOnlinePlayers().forEach(p -> p.sendMessage(Component.text("§a§lMythicMobsのリロードが行われいます。")));
+        Bukkit.getOnlinePlayers().forEach(p -> p.sendMessage(Component.text("§a§lMythicMobsのリロードが行われます。")));
     }
 
     public static class Conditions extends MythicListener {
@@ -60,6 +62,10 @@ public class MythicListener implements Listener {
             String s = e.getConditionName();
             if (s.equalsIgnoreCase("mythicInRadius")) {
                 e.register(new MythicInRadius(e.getConfig()));
+            } else if (s.equalsIgnoreCase("fromSurface")) {
+                e.register(new FromSurface(e.getConfig()));
+            } else if (s.equalsIgnoreCase("containRegion")) {
+                e.register(new ContainRegion(e.getConfig()));
             }
         }
     }

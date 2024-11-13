@@ -35,6 +35,11 @@ commands:
     aliases:
       - ss
       - setSpawn
+  savepoint:
+    permission: lifenewpve.command.savepoint
+    aliases:
+      - spoint
+      - spo
 
 permissions:
   lifenewpve.reload.mythicmobs:

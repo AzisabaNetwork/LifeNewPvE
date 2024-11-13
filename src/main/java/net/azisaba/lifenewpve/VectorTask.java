@@ -9,8 +9,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 public interface VectorTask {
 
     default Vector getVector(@NotNull Block b, LivingEntity p) {
@@ -26,21 +24,27 @@ public interface VectorTask {
         if (vector == null) return;
         applyVelocityWithSound(livingEntity, player, vector);
 
-        AtomicBoolean cancel = new AtomicBoolean(false);
-        for (int i = 1; i <= 120; i++) {
-            if (cancel.get()) break;
-            JavaPlugin.getPlugin(LifeNewPvE.class).runSyncDelayed(() -> {
-                if (livingEntity.isOnGround()) {
-                    cancel.set(true);
-                    return;
-                }
-                Vector currentVelocity = livingEntity.getVelocity();
-                double currentY = currentVelocity.getY();
-                livingEntity.setVelocity(currentVelocity.clone().add(player.getEyeLocation().getDirection().clone().multiply(0.1)).multiply(1.05).setY(currentY));
-                livingEntity.setFallDistance(0);
-                player.setFallDistance(0);
-            }, i);
+        int i = 0;
+        JavaPlugin.getPlugin(LifeNewPvE.class).runSyncDelayed(()-> applyVelocity(livingEntity, player, i), 1);
+
+    }
+
+    default void applyVelocity(LivingEntity livingEntity, Player player, int i) {
+        if (i >= 10) {
+            if (livingEntity == null || player == null) return;
+            if (livingEntity.isOnGround()) return;
+            if (livingEntity.isInLava() || livingEntity.isInWater()) return;
+            if (player.isInLava() || player.isInWater()) return;
         }
+        Vector currentVelocity = livingEntity.getVelocity();
+        double currentY = currentVelocity.getY();
+        livingEntity.setVelocity(currentVelocity.clone().add(player.getEyeLocation().getDirection().clone().multiply(0.1)).multiply(1.05).setY(currentY));
+        livingEntity.setFallDistance(0);
+        player.setFallDistance(0);
+        i++;
+
+        int finalI = i;
+        JavaPlugin.getPlugin(LifeNewPvE.class).runSyncDelayed(()-> applyVelocity(livingEntity, player, finalI), 1);
     }
 
     default void applyVelocityWithSound(@NotNull LivingEntity livingEntity, @NotNull Player player, Vector vector) {

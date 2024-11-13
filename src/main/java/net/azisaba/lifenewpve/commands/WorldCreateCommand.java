@@ -87,20 +87,22 @@ public class WorldCreateCommand implements TabExecutor {
         }
         for (int count = 0; count < args.length; count++) {
             if (args.length == count + 1 && args[count].isEmpty() && count > 2) {
-                if (args[count - 1].equals("-g")) {
-                    return List.of("Terra:OVERWORLD", "Terra:ORIGEN", "Terra:HYDRAXIA", "VoidWorldGenerator", "Terra:OVERWORLD_NO_CAVE", "LifeGen");
-                }
-                if (args[count - 1].equals("-t")) {
-                    return List.of("NORMAL", "FLAT", "LARGE_BIOMES", "AMPLIFIED", "CUSTOM");
-                }
-                if (args[count - 1].equals("-a")) {
-                    return List.of("true", "false");
-                }
-                if (args[count - 1].equals("-s")) {
-                    return List.of(UUID.randomUUID().toString());
-                }
-                if (args[count - 1].equals("-d")) {
-                    return List.of("EASY", "NORMAL", "HARD");
+                switch (args[count - 1]) {
+                    case "-g" -> {
+                        return List.of("Terra:OVERWORLD", "Terra:ORIGEN", "Terra:HYDRAXIA", "VoidWorldGenerator", "Terra:OVERWORLD_NO_CAVE", "LifeGen");
+                    }
+                    case "-t" -> {
+                        return List.of("NORMAL", "FLAT", "LARGE_BIOMES", "AMPLIFIED", "CUSTOM");
+                    }
+                    case "-a" -> {
+                        return List.of("true", "false");
+                    }
+                    case "-s" -> {
+                        return List.of(UUID.randomUUID().toString());
+                    }
+                    case "-d" -> {
+                        return List.of("EASY", "NORMAL", "HARD");
+                    }
                 }
             }
         }
