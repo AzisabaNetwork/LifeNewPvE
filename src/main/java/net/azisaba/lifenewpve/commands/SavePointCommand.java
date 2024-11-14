@@ -18,6 +18,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 public class SavePointCommand implements TabExecutor {
@@ -33,6 +34,15 @@ public class SavePointCommand implements TabExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (!(sender instanceof Player player)) return sendFailureMessage(sender, "プレイヤー限定コマンドです。");
+        if (args.length < 1) {
+           return sendFailureMessage(player,
+                    "§c/spo remove <[消す対象の、Tag(-t) もしくは固有名(-u) もしくはその両方] <そのフラグに対応したパラメータ>>",
+                    "§c/spo search <[探す対象の、Tag(-t) もしくは固有名(-u) もしくはその両方] <そのフラグに対応したパラメータ>>",
+                    "§c/spo search <[tpする対象の、Tag(-t) もしくは固有名(-u) もしくはその両方] <そのフラグに対応したパラメータ>>",
+                    "§c/spo task <[タスク化する対象の、Tag(-t) もしくは固有名(-u) もしくはその両方] <そのフラグに対応したパラメータ>> <作成期限(1d、10m、1h、180s など>",
+                    "§c/spo addTag <固有名> <1つまたは、複数の検索タグ 例. RareMob,RareBoss,Others>",
+                    "§c/spo removeTag <固有名> <1つまたは、複数の検索タグ 例. RareMob,RareBoss,Others>");
+        }
 
         String subCommand = args[0].toLowerCase();
         player.sendMessage(Component.text("§7処理中です..."));
@@ -168,6 +178,9 @@ public class SavePointCommand implements TabExecutor {
             executeRemoveTag(unique, tags);
         }
         player.sendMessage(Component.text("§aデータの操作が完了しました。"));
+        if (!unique.equals("*")) {
+            player.sendMessage(Component.text("§7<固有名>の部分は「*」で全選択"));
+        }
         return true;
     }
 
@@ -189,50 +202,60 @@ public class SavePointCommand implements TabExecutor {
     }
 
     private void executeAddTag(String unique, Set<String> tags) {
+        executeTagModification(unique, tags, this::addTagsToList, true);
+    }
+
+    private void executeRemoveTag(String unique, Set<String> tags) {
+        executeTagModification(unique, tags, this::removeTagsFromList, false);
+    }
+
+    private void executeTagModification(String unique, Set<String> tags, BiConsumer<List<String>, Set<String>> tagOperation, boolean isAddOperation) {
         plugin.runAsync(() -> {
             ConfigurationSection cs = plugin.getConfig().getConfigurationSection("SavePoint");
             if (cs == null) return;
-            cs.getKeys(true)
-                    .stream()
-                    .filter(s -> s.contains(unique))
-                    .filter(s -> countPeriods(s) == 1)
+
+            cs.getKeys(true).stream()
+                    .filter(s -> isValidKey(s, unique))
                     .forEach(s -> {
-                        if (plugin.getConfig().isSet("SavePoint." + s + ".Tags")) {
-                            List<String> tagList = plugin.getConfig().getStringList("SavePoint." + s + ".Tags");
-                            tags.forEach(tag -> {
-                                if (!tagList.contains(tag)) {
-                                    tagList.add(tag);
-                                    plugin.getConfig().set("SavePoint." + s + ".Tags", tagList);
-                                }
-                            });
-                        } else {
-                            plugin.getConfig().set("SavePoint." + s + ".Tags", new ArrayList<>(tags));
+                        String tagPath = "SavePoint." + s + ".Tags";
+                        if (plugin.getConfig().isSet(tagPath)) {
+                            List<String> tagList = new ArrayList<>(plugin.getConfig().getStringList(tagPath));
+                            tagOperation.accept(tagList, tags);
+                            if (tagList.isEmpty()) {
+                                plugin.getConfig().set(tagPath, null);
+                            } else {
+                                plugin.getConfig().set(tagPath, tagList);
+                            }
+                        } else if (isAddOperation) {
+                            plugin.getConfig().set(tagPath, new ArrayList<>(tags));
                         }
                     });
+
             plugin.saveConfig();
             SavePointCommand.updateTags();
         });
     }
 
-    private void executeRemoveTag(String unique, Set<String> tags) {
-        plugin.runAsync(() -> {
-            ConfigurationSection cs = plugin.getConfig().getConfigurationSection("SavePoint");
-            if (cs == null) return;
-            cs.getKeys(true)
-                    .stream()
-                    .filter(s -> s.contains(unique))
-                    .filter(s -> countPeriods(s) == 1)
-                    .forEach(s -> tags.forEach(tag -> {
-                        if (!plugin.getConfig().isSet("SavePoint." + s + ".Tags")) return;
-                        List<String> tagList = plugin.getConfig().getStringList("SavePoint." + s + ".Tags");
-                        if (tagList.contains(tag)) {
-                            tagList.remove(tag);
-                            plugin.getConfig().set("SavePoint." + s + ".Tags", tagList);
-                        }
-                    }));
-            plugin.saveConfig();
-            SavePointCommand.updateTags();
+    private boolean isValidKey(String key, @NotNull String unique) {
+        int periodCount = countPeriods(key);
+        if (unique.equals("*")) return periodCount == 1;
+        if (key.contains(unique) && periodCount == 1) {
+            String[] parts = key.split("\\.");
+            return Arrays.asList(parts).contains(unique);
+        }
+        return false;
+    }
+
+    private void addTagsToList(List<String> tagList, @NotNull Set<String> tags) {
+        tags.forEach(tag -> {
+            if (!tagList.contains(tag)) {
+                tagList.add(tag);
+            }
         });
+    }
+
+    private void removeTagsFromList(@NotNull List<String> tagList, @NotNull Set<String> tags) {
+        tags.forEach(tagList::remove);
     }
 
     private Set<Point> filterPointsByOptions(String uniqueOption, String tagOption) {
