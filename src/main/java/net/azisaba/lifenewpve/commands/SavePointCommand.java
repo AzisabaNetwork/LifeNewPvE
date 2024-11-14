@@ -83,12 +83,12 @@ public class SavePointCommand implements TabExecutor {
     private boolean handleDynamicCommands(@NotNull String command, String[] args, Player player) {
         return switch (command) {
             case "search", "remove", "tp", "task" -> handleComplexCommand(args, player);
-            case "addTag", "removeTag" -> handleTagsCommand(args, player);
+            case "addtag", "removetag" -> handleTagsCommand(args, player);
             default -> sendFailureMessage(player,
                     "§c/spo remove <[消す対象の、Tag(-t) もしくは固有名(-u) もしくはその両方] <そのフラグに対応したパラメータ>>",
                     "§c/spo search <[探す対象の、Tag(-t) もしくは固有名(-u) もしくはその両方] <そのフラグに対応したパラメータ>>",
                     "§c/spo search <[tpする対象の、Tag(-t) もしくは固有名(-u) もしくはその両方] <そのフラグに対応したパラメータ>>",
-                    "§/spo task <[タスク化する対象の、Tag(-t) もしくは固有名(-u) もしくはその両方] <そのフラグに対応したパラメータ>> <作成期限(1d、10m、1h、180s など>",
+                    "§c/spo task <[タスク化する対象の、Tag(-t) もしくは固有名(-u) もしくはその両方] <そのフラグに対応したパラメータ>> <作成期限(1d、10m、1h、180s など>",
                     "§c/spo addTag <固有名> <1つまたは、複数の検索タグ 例. RareMob,RareBoss,Others>",
                     "§c/spo removeTag <固有名> <1つまたは、複数の検索タグ 例. RareMob,RareBoss,Others>"
             );
@@ -171,8 +171,6 @@ public class SavePointCommand implements TabExecutor {
         } else {
             executeRemoveTag(unique, tags);
         }
-
-        plugin.saveConfig();
         player.sendMessage(Component.text("§aデータの操作が完了しました。"));
         return true;
     }
@@ -200,9 +198,23 @@ public class SavePointCommand implements TabExecutor {
             if (cs == null) return;
             cs.getKeys(true)
                     .stream()
-                    .filter(unique::contains)
+                    .filter(s -> s.contains(unique))
                     .filter(s -> countPeriods(s) == 1)
-                    .forEach(s -> plugin.getConfig().set(s + ".Tags", tags));
+                    .forEach(s -> {
+                        if (plugin.getConfig().isSet("SavePoint." + s + ".Tags")) {
+                            List<String> tagList = plugin.getConfig().getStringList("SavePoint." + s + ".Tags");
+                            tags.forEach(tag -> {
+                                if (!tagList.contains(tag)) {
+                                    tagList.add(tag);
+                                    plugin.getConfig().set("SavePoint." + s + ".Tags", tagList);
+                                }
+                            });
+                        } else {
+                            plugin.getConfig().set("SavePoint." + s + ".Tags", new ArrayList<>(tags));
+                        }
+                    });
+            plugin.saveConfig();
+            SavePointCommand.updateTags();
         });
     }
 
@@ -212,16 +224,18 @@ public class SavePointCommand implements TabExecutor {
             if (cs == null) return;
             cs.getKeys(true)
                     .stream()
-                    .filter(unique::contains)
+                    .filter(s -> s.contains(unique))
                     .filter(s -> countPeriods(s) == 1)
                     .forEach(s -> tags.forEach(tag -> {
-                        if (!plugin.getConfig().isSet(s + ".Tags")) return;
-                        List<String> tagList = plugin.getConfig().getStringList(s + ".Tags");
+                        if (!plugin.getConfig().isSet("SavePoint." + s + ".Tags")) return;
+                        List<String> tagList = plugin.getConfig().getStringList("SavePoint." + s + ".Tags");
                         if (tagList.contains(tag)) {
                             tagList.remove(tag);
-                            plugin.getConfig().set(s + ".Tags", tagList);
+                            plugin.getConfig().set("SavePoint." + s + ".Tags", tagList);
                         }
                     }));
+            plugin.saveConfig();
+            SavePointCommand.updateTags();
         });
     }
 
@@ -317,7 +331,7 @@ public class SavePointCommand implements TabExecutor {
         }
     }
 
-    private static final List<String> COMMAND_SUGGESTIONS = List.of("search", "add", "remove", "tp", "reload", "task", "tasks");
+    private static final List<String> COMMAND_SUGGESTIONS = List.of("search", "add", "remove", "tp", "reload", "task", "tasks", "addTag", "removeTag", "listTag");
     private static final List<String> SEARCH_SUGGESTIONS = List.of("<1つまたは、複数の検索タグ 例. RareMob,RareBoss,Others>");
     private static final List<String> UNIQUE_SUGGESTIONS = List.of("<固有名>");
     private static final String TAG_OPTION = "-t";
@@ -331,10 +345,25 @@ public class SavePointCommand implements TabExecutor {
             @NotNull String[] args) {
 
         if (args.length == 1) {
-            return COMMAND_SUGGESTIONS;
+            if (args[0].isEmpty() || args[0].isBlank()) {
+                return COMMAND_SUGGESTIONS;
+            } else {
+                List<String> list;
+                try {
+                    String string = args[0].toLowerCase();
+                    list = new ArrayList<>(COMMAND_SUGGESTIONS);
+                    list.stream().filter(s -> s.contains(string)).forEach(list::add);
+                } catch (Exception e) {
+                    return COMMAND_SUGGESTIONS;
+                }
+                return list;
+            }
         } else if (args.length >= 2) {
 
-            if (args[0].equalsIgnoreCase("add")) {
+            if (args[0].equalsIgnoreCase("add") ||
+                    args[0].equalsIgnoreCase("removetag") ||
+                    args[0].equalsIgnoreCase("addtag")) {
+
                 if (args.length == 2) {
                     return UNIQUE_SUGGESTIONS;
                 }
