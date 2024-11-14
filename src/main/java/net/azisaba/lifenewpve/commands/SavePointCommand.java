@@ -1,25 +1,30 @@
 package net.azisaba.lifenewpve.commands;
 
 import net.azisaba.lifenewpve.LifeNewPvE;
+import net.azisaba.lifenewpve.libs.LifeTime;
+import net.azisaba.lifenewpve.libs.attributes.Point;
+import net.azisaba.lifenewpve.libs.attributes.SavePoint;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.event.ClickEvent;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class SavePointCommand implements TabExecutor {
 
     private final LifeNewPvE plugin;
-    private static final Set<Point> TAGS = new HashSet<>();
+    private static final Set<Point> POINTS = new HashSet<>();
+    private static final Set<String> TAGS = new HashSet<>();
 
     public SavePointCommand(LifeNewPvE plugin) {
         this.plugin = plugin;
@@ -28,103 +33,221 @@ public class SavePointCommand implements TabExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (!(sender instanceof Player player)) return sendFailureMessage(sender, "プレイヤー限定コマンドです。");
-        if (args[0].equalsIgnoreCase("reload")) {
-            updateTags(plugin);
-            player.sendMessage(Component.text("リロードしました。"));
-            return true;
+
+        String subCommand = args[0].toLowerCase();
+        player.sendMessage(Component.text("§7処理中です..."));
+        if (subCommand.equalsIgnoreCase("reload")) {
+            return handleReload(player);
+
+        } else if (subCommand.equalsIgnoreCase("tasks")) {
+            return handleTasks(player);
+
+        } else if (subCommand.equalsIgnoreCase("add")) {
+            return handleAdd(args, player);
+
+        } else if (subCommand.equalsIgnoreCase("listTag")) {
+            return handleListTag(player);
+
+        } else if (args.length > 2) {
+            return handleDynamicCommands(subCommand, args, player);
         }
-        if (args.length > 2) {
-            return switch (args[0].toLowerCase()) {
-                case "search", "remove", "tp" -> handleSearchCommand(args, sender, player);
-                case "add" -> handleSimpleCommand(args, sender, player);
-                default -> sendFailureMessage(sender, "§c/spo <add|remove|tp|search> <固有名> <検索Tag>");
-            };
-        }
+        sendFailureMessage(player, "値を正しく入力してください。");
         return false;
     }
 
-    public static void updateTags(@NotNull LifeNewPvE plugin) {
-        TAGS.clear();
-        plugin.runAsync(() -> {
-            ConfigurationSection savePointSection = plugin.getConfig().getConfigurationSection("SavePoint");
-            if (savePointSection == null) return;
-            Set<String> keys = savePointSection.getKeys(true);
+    private boolean handleListTag(Player player) {
+        if (TAGS.isEmpty()) {
+            player.sendMessage(Component.text("§cタグは存在しません。"));
+        } else {
+            TAGS.forEach(t -> player.sendMessage(Component.text(t)));
+        }
+        return true;
+    }
 
-            keys.forEach(key -> {
-                if (countPeriods(key) != 2) return;
-                Point point = createPointFromKey(key, plugin);
-                if (point == null) return;
-                TAGS.add(point);
-            });
+    private boolean handleAdd(@NotNull String[] args, Player player) {
+        if (args.length > 3 || args.length < 2 || args[1].isEmpty() || args[1].isBlank()) return false;
+       return createPoint(player, args);
+    }
+
+    private boolean handleReload(@NotNull Player player) {
+        updateTags();
+        player.sendMessage(Component.text("リロードしました。"));
+        return true;
+    }
+
+    private boolean handleTasks(Player player) {
+        getTaskMessage(player);
+        return true;
+    }
+
+    private boolean handleDynamicCommands(@NotNull String command, String[] args, Player player) {
+        return switch (command) {
+            case "search", "remove", "tp", "task" -> handleComplexCommand(args, player);
+            case "addTag", "removeTag" -> handleTagsCommand(args, player);
+            default -> sendFailureMessage(player,
+                    "§c/spo remove <[消す対象の、Tag(-t) もしくは固有名(-u) もしくはその両方] <そのフラグに対応したパラメータ>>",
+                    "§c/spo search <[探す対象の、Tag(-t) もしくは固有名(-u) もしくはその両方] <そのフラグに対応したパラメータ>>",
+                    "§c/spo search <[tpする対象の、Tag(-t) もしくは固有名(-u) もしくはその両方] <そのフラグに対応したパラメータ>>",
+                    "§/spo task <[タスク化する対象の、Tag(-t) もしくは固有名(-u) もしくはその両方] <そのフラグに対応したパラメータ>> <作成期限(1d、10m、1h、180s など>",
+                    "§c/spo addTag <固有名> <1つまたは、複数の検索タグ 例. RareMob,RareBoss,Others>",
+                    "§c/spo removeTag <固有名> <1つまたは、複数の検索タグ 例. RareMob,RareBoss,Others>"
+            );
+        };
+    }
+
+    private void getTaskMessage(Player p) {
+        POINTS.forEach(point -> {
+            if (plugin.getConfig().isSet(point.getRootPath())) {
+                long l = plugin.getConfig().getLong(point.getRootPath());
+                long time;
+                if (l == 0) {
+                    time = 0;
+                } else {
+                    time = l -  Instant.now().getEpochSecond();
+                }
+                LifeTime lifeTime = new LifeTime();
+                String m = lifeTime.getTimer(time);
+                p.sendMessage(new SavePoint(plugin, lifeTime).getInfoMessage(point, m));
+            }
         });
     }
 
-    @Contract(pure = true)
-    private static int countPeriods(@NotNull String str) {
-        int count = 0;
-        for (char ch : str.toCharArray()) {
-            if (ch == '.') count++;
+    private boolean createPoint(Player player, String[] args) {
+        Point point = SavePoint.createPoint(args, player);
+        plugin.getConfig().set(point.getLocationPath(), point.loc());
+        if (!point.tags().isEmpty()) {
+            plugin.getConfig().set(point.getTagPath(), new ArrayList<>(point.tags()));
         }
-        return count;
+        plugin.saveConfig();
+        player.sendMessage(Component.text("§a§lセーブポイントを作成しました！" +  "§b固有名§f: " + point.unique()));
+        updateTags();
+        return true;
+    }
+
+    private boolean handleComplexCommand(@NotNull String[] args, Player player) {
+        Map<String, String> options = extractOptions(args);
+        String uniqueOption = options.get("unique");
+        String tagOption = options.get("tag");
+
+        if (uniqueOption == null && tagOption == null) {
+            return sendFailureMessage(player, "オプション1つ以上必要です。");
+        }
+
+
+        Set<Point> filteredPoints = filterPointsByOptions(uniqueOption, tagOption);
+
+        SavePoint savePoint = new SavePoint(plugin, new LifeTime());
+        processCommand(args[0].toLowerCase(), savePoint, filteredPoints, player, args);
+
+        return true;
+    }
+
+    private boolean handleTagsCommand(@NotNull String[] args, Player player) {
+        if (args.length != 3) {
+            return sendFailureMessage(player, "§cコマンドの規格通りに記述してください。",
+                    "§c/spo addTag <固有名> <1つまたは、複数の検索タグ 例. RareMob,RareBoss,Others>",
+                    "§c/spo removeTag <固有名> <1つまたは、複数の検索タグ 例. RareMob,RareBoss,Others>");
+        }
+
+        String commandType = args[0].toLowerCase();
+        if (!commandType.contains("add") && !commandType.contains("remove")) {
+            return sendFailureMessage(player, "§c無効なコマンドタイプです。");
+        }
+
+        String unique = validateParameter(args[1]);
+        String tag = validateParameter(args[2]);
+
+        if (unique == null || tag == null) {
+            sendFailureMessage(player, "§c無効なパラメータです。",
+                    "§c/spo addTag <固有名> <1つまたは、複数の検索タグ 例. RareMob,RareBoss,Others>",
+                    "§c/spo removeTag <固有名> <1つまたは、複数の検索タグ 例. RareMob,RareBoss,Others>");
+            return false;
+        }
+
+        Set<String> tags = parseTags(tag);
+
+        if (commandType.contains("add")) {
+            executeAddTag(unique, tags);
+        } else {
+            executeRemoveTag(unique, tags);
+        }
+
+        plugin.saveConfig();
+        player.sendMessage(Component.text("§aデータの操作が完了しました。"));
+        return true;
     }
 
     @Nullable
-    private static Point createPointFromKey(@NotNull String key, @NotNull LifeNewPvE plugin) {
-        String path = Point.getRootKey() + "." + key;
-        if (plugin.getConfig().isSet(path)) {
+    @Contract(pure = true)
+    private String validateParameter(@NotNull String param) {
+        return param.isEmpty() ? null : param;
+    }
 
-            Location location = plugin.getConfig().getLocation(path);
-            String[] parts = key.split("\\.");
-            String world = parts[0];
-            String tag = parts[1];
-            String unique = parts[2];
-
-            return new Point(world, tag, unique, location);
+    @NotNull
+    private Set<String> parseTags(@NotNull String tag) {
+        Set<String> tags = new HashSet<>();
+        if (tag.contains(",")) {
+            tags.addAll(Arrays.asList(tag.split(",")));
         } else {
-            return null;
+            tags.add(tag);
         }
+        return tags;
     }
 
-    private boolean handleSearchCommand(@NotNull String[] args, CommandSender sender, Player player) {
-        Map<String, String> options = extractOptions(args);
-        String unique = options.get("unique");
-        String tag = options.get("tag");
-
-        if (unique == null && tag == null) {
-            return sendFailureMessage(sender, "オプション1つ以上必要です。");
-        }
-
-        Set<Point> points = TAGS;
-        if (tag != null) {
-            points = points.stream().filter(point -> tag.equalsIgnoreCase(point.tag)).collect(Collectors.toSet());
-        }
-        if (unique != null) {
-            points = points.stream().filter(point -> unique.equalsIgnoreCase(point.unique)).collect(Collectors.toSet());
-        }
-        switch (args[0].toLowerCase()) {
-            case "search" -> displayPoints(points, player);
-            case "remove" -> removePoints(points, player);
-            case "tp" -> teleportPoints(points, player);
-        }
-        return true;
+    private void executeAddTag(String unique, Set<String> tags) {
+        plugin.runAsync(() -> {
+            ConfigurationSection cs = plugin.getConfig().getConfigurationSection("SavePoint");
+            if (cs == null) return;
+            cs.getKeys(true)
+                    .stream()
+                    .filter(unique::contains)
+                    .filter(s -> countPeriods(s) == 1)
+                    .forEach(s -> plugin.getConfig().set(s + ".Tags", tags));
+        });
     }
 
-    private boolean handleSimpleCommand(@NotNull String[] args, CommandSender sender, Player player) {
-        if (args[1].isBlank() || args[2].isBlank() || args[1].isEmpty() || args[2].isEmpty() || args.length != 3) {
-            return sendFailureMessage(sender, "§c/spo add| <固有名> <検索Tag>");
-        }
-
-        Point point = createPoint(args, player);
-        String key = Point.getRootKey() + "." + point.getSaveKey();
-        plugin.getConfig().set(key, point.getSaveData());
-        plugin.saveConfig();
-        player.sendMessage(Component.text("§a固有名: " + point.unique + " 検索Tag: " + point.tag + " で、セーブポイントを作成しました。"));
-        return true;
+    private void executeRemoveTag(String unique, Set<String> tags) {
+        plugin.runAsync(() -> {
+            ConfigurationSection cs = plugin.getConfig().getConfigurationSection("SavePoint");
+            if (cs == null) return;
+            cs.getKeys(true)
+                    .stream()
+                    .filter(unique::contains)
+                    .filter(s -> countPeriods(s) == 1)
+                    .forEach(s -> tags.forEach(tag -> {
+                        if (!plugin.getConfig().isSet(s + ".Tags")) return;
+                        List<String> tagList = plugin.getConfig().getStringList(s + ".Tags");
+                        if (tagList.contains(tag)) {
+                            tagList.remove(tag);
+                            plugin.getConfig().set(s + ".Tags", tagList);
+                        }
+                    }));
+        });
     }
 
-    private boolean sendFailureMessage(@NotNull CommandSender sender, String message) {
-        sender.sendMessage("§c" + message);
-        return true;
+    private Set<Point> filterPointsByOptions(String uniqueOption, String tagOption) {
+        Set<Point> points = POINTS;
+        if (tagOption != null) {
+            Set<String> tags = parseTags(tagOption);
+            points = points.stream()
+                    .filter(point -> point.tags().containsAll(tags))
+                    .collect(Collectors.toSet());
+        }
+        if (uniqueOption != null) {
+            points = points.stream()
+                    .filter(point -> uniqueOption.equalsIgnoreCase(point.unique()))
+                    .collect(Collectors.toSet());
+        }
+        return points;
+    }
+
+    private void processCommand(@NotNull String command, SavePoint savePoint, Set<Point> points, Player player, String[] args) {
+        switch (command) {
+            case "search" -> savePoint.displayPoints(points, player);
+            case "remove" -> savePoint.removePoints(points, player);
+            case "tp" -> savePoint.teleportPoints(points, player);
+            case "task" -> savePoint.taskPoints(points, player, args);
+        }
     }
 
     @NotNull
@@ -141,49 +264,61 @@ public class SavePointCommand implements TabExecutor {
         return options;
     }
 
-    private void displayPoints(@NotNull Set<Point> points, @NotNull Player player) {
-        points.stream()
-                .sorted(Comparator.comparing(Point::world))
-                .map(point -> String.format("§fワールド: %s  §f名前: §b%s §fタグ: §a%s", point.world(), point.unique(), point.tag()))
-                .forEach(s -> player.sendMessage(Component.text(s)));
-    }
+    public static void updateTags() {
+        LifeNewPvE plugin = JavaPlugin.getPlugin(LifeNewPvE.class);
+        POINTS.clear();
+        plugin.runAsync(() -> {
+            ConfigurationSection savePointSection = plugin.getConfig().getConfigurationSection("SavePoint");
+            if (savePointSection == null) return;
+            Set<String> keys = savePointSection.getKeys(true);
 
-    private void teleportPoints(@NotNull Set<Point> points, @NotNull Player player) {
-        points.stream()
-                .sorted(Comparator.comparing(Point::world))
-                .forEach(point -> {
-                    Location location = point.loc();
-                    double x = location.getBlockX() + 0.5;
-                    double y = location.getBlockY();
-                    double z = location.getBlockZ() + 0.5;
-                    String message = String.format("§fワールド: %s  §f名前: §b%s §fタグ: §a%s §f場所: %s, %s, %s", point.world(), point.unique(), point.tag(), x, y, z);
-                    player.sendMessage(Component.text(message).clickEvent(ClickEvent.runCommand("/tp " + x + " " + y + " " + z)));
-                });
-    }
-
-    private void removePoints(@NotNull Set<Point> points, @NotNull Player player) {
-        points.forEach(point -> {
-            String key = Point.getRootKey() + "." + point.getSaveKey();
-            if (plugin.getConfig().isSet(key)) {
-                plugin.getConfig().set(key, null);
-            }
+            keys.forEach(key -> {
+                if (countPeriods(key) != 1) return;
+                Point point = createPointFromKey(key, plugin);
+                if (point == null) return;
+                POINTS.add(point);
+            });
         });
-        if (!points.isEmpty()) {
-            plugin.saveConfig();
-            player.sendMessage(Component.text("§fデータを§c§l削除§fしました。"));
+    }
+
+    @Contract(pure = true)
+    private static int countPeriods(@NotNull String str) {
+        int count = 0;
+        for (char ch : str.toCharArray()) {
+            if (ch == '.') count++;
+        }
+        return count;
+    }
+
+    @Nullable
+    private static Point createPointFromKey(@NotNull String key, @NotNull LifeNewPvE plugin) {
+        if (plugin.getConfig().isSet("SavePoint." + key)) {
+            String[] parts = key.split("\\.");
+            String world = parts[0];
+            String unique = parts[1];
+
+            Location loc;
+            if (plugin.getConfig().isSet("SavePoint." + key + ".Location")) {
+                loc = plugin.getConfig().getLocation("SavePoint." + key + ".Location");
+            } else {
+                return null;
+            }
+
+            Set<String> tags;
+            if (plugin.getConfig().isSet("SavePoint." + key + ".Tags")) {
+                tags = new HashSet<>(plugin.getConfig().getStringList("SavePoint." + key + ".Tags"));
+                TAGS.addAll(tags);
+            } else {
+                tags = new HashSet<>();
+            }
+            return new Point(world, tags, unique, loc);
+        } else {
+            return null;
         }
     }
 
-    @NotNull
-    private static Point createPoint(@NotNull String[] args, @NotNull Player player) {
-        String unique = args[1];
-        String tag = args[2];
-        String world = player.getWorld().getName();
-        return new Point(world, tag, unique, player.getLocation());
-    }
-
-    private static final List<String> COMMAND_SUGGESTIONS = List.of("search", "add", "remove", "tp", "reload");
-    private static final List<String> SEARCH_SUGGESTIONS = List.of("<検索タグ>");
+    private static final List<String> COMMAND_SUGGESTIONS = List.of("search", "add", "remove", "tp", "reload", "task", "tasks");
+    private static final List<String> SEARCH_SUGGESTIONS = List.of("<1つまたは、複数の検索タグ 例. RareMob,RareBoss,Others>");
     private static final List<String> UNIQUE_SUGGESTIONS = List.of("<固有名>");
     private static final String TAG_OPTION = "-t";
     private static final String UNIQUE_OPTION = "-u";
@@ -212,7 +347,10 @@ public class SavePointCommand implements TabExecutor {
             String mainCommand = args[0];
             String lastArg = args[count - 1];
 
-            if (mainCommand.equalsIgnoreCase("search") || mainCommand.equalsIgnoreCase("remove") || mainCommand.equalsIgnoreCase("tp")) {
+            if (mainCommand.equalsIgnoreCase("search") ||
+                    mainCommand.equalsIgnoreCase("remove") ||
+                    mainCommand.equalsIgnoreCase("tp") ||
+                    mainCommand.equalsIgnoreCase("task")) {
                 if (lastArg.equals(TAG_OPTION)) {
                     return filterByTag(args[count]);
                 }
@@ -229,35 +367,30 @@ public class SavePointCommand implements TabExecutor {
 
     private List<String> filterByTag(String tag) {
         return TAGS.stream()
-                .map(Point::tag)
                 .filter(t -> t.contains(tag.toLowerCase()))
                 .distinct()
                 .toList();
     }
 
     private List<String> filterByUnique(String unique) {
-        return TAGS.stream()
+        return POINTS.stream()
                 .map(Point::unique)
                 .filter(uniqued -> uniqued.contains(unique.toLowerCase()))
                 .distinct()
                 .toList();
     }
 
-    public record Point(String world, String tag, String unique, Location loc) {
-        @NotNull
-        public String getSaveKey() {
-            return world + "." + tag + "." + unique;
-        }
-        @NotNull
-        @Contract(pure = true)
-        public Location getSaveData() {
-            return  loc;
-        }
+    public static boolean sendFailureMessage(@NotNull CommandSender sender, String... message) {
+        Arrays.stream(message).forEach((m) -> sender.sendMessage(Component.text(m)));
+        return true;
+    }
 
-        @NotNull
-        @Contract(pure = true)
-        public static String getRootKey() {
-            return "SavePoint";
-        }
+    public static boolean sendFailureMessage(@NotNull CommandSender sender, String message) {
+        sender.sendMessage("§c" + message);
+        return true;
+    }
+
+    public static void addTag(@NotNull String tag) {
+        TAGS.add(tag.toLowerCase());
     }
 }

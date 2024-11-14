@@ -28,7 +28,7 @@ public final class LifeNewPvE extends JavaPlugin implements Task {
     }
 
     private void updatePointData() {
-        SavePointCommand.updateTags(this);
+       SavePointCommand.updateTags();
     }
 
     private void registerListeners() {

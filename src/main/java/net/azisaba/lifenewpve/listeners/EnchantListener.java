@@ -1,6 +1,6 @@
 package net.azisaba.lifenewpve.listeners;
 
-import net.azisaba.lifenewpve.AttributeBuilder;
+import net.azisaba.lifenewpve.libs.attributes.AttributeBuilder;
 import net.azisaba.lifenewpve.LifeNewPvE;
 import org.bukkit.Bukkit;
 import org.bukkit.enchantments.Enchantment;

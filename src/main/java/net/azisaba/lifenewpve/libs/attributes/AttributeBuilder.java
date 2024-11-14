@@ -1,7 +1,8 @@
-package net.azisaba.lifenewpve;
+package net.azisaba.lifenewpve.libs.attributes;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import net.azisaba.lifenewpve.LifeNewPvE;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;

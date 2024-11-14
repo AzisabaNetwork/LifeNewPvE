@@ -1,7 +1,7 @@
 package net.azisaba.lifenewpve.listeners;
 
 import net.azisaba.lifenewpve.LifeNewPvE;
-import net.azisaba.lifenewpve.VectorTask;
+import net.azisaba.lifenewpve.libs.VectorTask;
 import net.azisaba.lifenewpve.commands.WorldTeleportCommand;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;

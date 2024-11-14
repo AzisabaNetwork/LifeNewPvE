@@ -40,6 +40,7 @@ commands:
     aliases:
       - spoint
       - spo
+      - saves
 
 permissions:
   lifenewpve.reload.mythicmobs:

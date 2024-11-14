@@ -1,5 +1,6 @@
-package net.azisaba.lifenewpve;
+package net.azisaba.lifenewpve.libs;
 
+import net.azisaba.lifenewpve.LifeNewPvE;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
