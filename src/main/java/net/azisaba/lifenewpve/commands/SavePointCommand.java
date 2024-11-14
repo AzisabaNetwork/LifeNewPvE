@@ -97,14 +97,10 @@ public class SavePointCommand implements TabExecutor {
 
     private void getTaskMessage(Player p) {
         POINTS.forEach(point -> {
-            if (plugin.getConfig().isSet(point.getRootPath())) {
-                long l = plugin.getConfig().getLong(point.getRootPath());
-                long time;
-                if (l == 0) {
-                    time = 0;
-                } else {
-                    time = l -  Instant.now().getEpochSecond();
-                }
+            if (plugin.getConfig().isSet(point.getTaskPath())) {
+                long l = plugin.getConfig().getLong(point.getTaskPath());
+                if (l == 0) return;
+                long time = l - Instant.now().getEpochSecond();
                 LifeTime lifeTime = new LifeTime();
                 String m = lifeTime.getTimer(time);
                 p.sendMessage(new SavePoint(plugin, lifeTime).getInfoMessage(point, m));
