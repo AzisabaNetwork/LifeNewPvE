@@ -179,7 +179,7 @@ public class SavePointCommand implements TabExecutor {
         }
         player.sendMessage(Component.text("§aデータの操作が完了しました。"));
         if (!unique.equals("*")) {
-            player.sendMessage(Component.text("§7<固有名>の部分は「*」で全選択"));
+            player.sendMessage(Component.text("§7addTag、removeTagでのみ<固有名>の部分を「*」で全選択にできます。"));
         }
         return true;
     }
