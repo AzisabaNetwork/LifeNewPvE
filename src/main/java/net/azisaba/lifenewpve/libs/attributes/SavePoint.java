@@ -32,8 +32,10 @@ public class SavePoint {
                     long remainingTime = calculateRemainingTime(taskDurationInSeconds);
 
                     String formattedTimeMessage = lifeTime.getTimer(remainingTime);
-                    player.sendMessage(getInfoMessage(point, formattedTimeMessage));
+                    ClickEvent event = ClickEvent.copyToClipboard(point.unique());
+                    player.sendMessage(getInfoMessage(point, formattedTimeMessage).clickEvent(event));
                 });
+        player.sendMessage(Component.text("§7メッセージをクリックで、固有名をcopyできます。"));
     }
 
     public void teleportPoints(@NotNull Set<Point> points, @NotNull Player player) {
