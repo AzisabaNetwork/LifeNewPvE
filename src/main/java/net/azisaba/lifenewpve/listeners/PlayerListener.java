@@ -109,7 +109,7 @@ public class PlayerListener implements Listener {
 
             if (isCriticalHit) {
                 player.playSound(player, Sound.ENTITY_PLAYER_ATTACK_CRIT, 1, 1);
-                damageAmount+= 1.5;
+                damageAmount*= 1.5;
             } else if (isSweepingAttack) {
                 handleSweepingAttack(event, caster, mainHandItem, damageAmount);
             } else {
