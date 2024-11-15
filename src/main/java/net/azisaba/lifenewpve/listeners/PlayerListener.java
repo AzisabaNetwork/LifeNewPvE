@@ -1,6 +1,7 @@
 package net.azisaba.lifenewpve.listeners;
 
 import com.google.common.collect.Maps;
+import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.adapters.AbstractPlayer;
 import io.lumine.mythic.api.adapters.SkillAdapter;
 import io.lumine.mythic.api.skills.SkillCaster;
@@ -13,7 +14,9 @@ import net.azisaba.lifenewpve.LifeNewPvE;
 import net.azisaba.lifenewpve.libs.VectorTask;
 import net.azisaba.lifenewpve.commands.WorldTeleportCommand;
 import org.bukkit.Bukkit;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -23,6 +26,7 @@ import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.PluginManager;
 import org.jetbrains.annotations.NotNull;
 
@@ -83,28 +87,60 @@ public class PlayerListener implements Listener {
     public static class Pre extends PlayerListener {
 
         @EventHandler
-        public void onPre(@NotNull PrePlayerAttackEntityEvent e) {
-            if (!e.willAttack()) return;
-            ActiveMob mob = MythicBukkit.inst().getAPIHelper().getMythicMobInstance(e.getAttacked());
+        public void onPre(@NotNull PrePlayerAttackEntityEvent event) {
+            if (!event.willAttack()) return;
+
+            ActiveMob mob = MythicBukkit.inst().getAPIHelper().getMythicMobInstance(event.getAttacked());
             if (mob == null) return;
-            Player p = e.getPlayer();
-            AbstractPlayer player = BukkitAdapter.adapt(p).asPlayer();
-            if (p.getAttackCooldown() != 1) {
-                e.setCancelled(true);
+
+            Player player = event.getPlayer();
+            AbstractPlayer adaptedPlayer = BukkitAdapter.adapt(player).asPlayer();
+
+            if (player.getAttackCooldown() != 1) {
+                event.setCancelled(true);
                 return;
             }
 
-            SkillCaster caster = MythicBukkit.inst().getSkillManager().getCaster(player);
-            double amount = player.getDamage();
+            ItemStack mainHandItem = player.getInventory().getItemInMainHand();
+            boolean isCriticalHit = player.getFallDistance() > 0.25F;
+            boolean isSweepingAttack = mainHandItem.getType().toString().endsWith("SWORD");
+            SkillCaster caster = MythicBukkit.inst().getSkillManager().getCaster(adaptedPlayer);
+            double damageAmount = adaptedPlayer.getDamage();
 
-            DamageMetadata meta = getDamageMetadata(caster, amount);
-            SkillAdapter.get().doDamage(meta, mob.getEntity());
-            e.setCancelled(true);
+            if (isCriticalHit) {
+                player.playSound(player, Sound.ENTITY_PLAYER_ATTACK_CRIT, 1, 1);
+                damageAmount+= 1.5;
+            } else if (isSweepingAttack) {
+                handleSweepingAttack(event, caster, mainHandItem, damageAmount);
+            } else {
+                player.playSound(player, Sound.ENTITY_PLAYER_ATTACK_STRONG, 1, 1);
+            }
+
+            applyDamage(caster, damageAmount, mob.getEntity());
+            event.setCancelled(true);
+        }
+
+        private void handleSweepingAttack(@NotNull PrePlayerAttackEntityEvent event, SkillCaster caster, @NotNull ItemStack item, double damageAmount) {
+            double sweepingDamage = item.hasItemMeta() && item.getItemMeta().hasEnchant(Enchantment.SWEEPING_EDGE) ?
+                    calculateSweepingDamage(item, damageAmount) : 1;
+            DamageMetadata metaData = getDamageMetadata(caster, sweepingDamage, EntityDamageEvent.DamageCause.ENTITY_SWEEP_ATTACK);
+            event.getAttacked().getLocation().getNearbyLivingEntities(1.5, 0.1, 1.5)
+                    .forEach(entity -> SkillAdapter.get().doDamage(metaData, BukkitAdapter.adapt(entity)));
+        }
+
+        private double calculateSweepingDamage(@NotNull ItemStack item, double initialDamage) {
+            double enchantLevel = item.getItemMeta().getEnchantLevel(Enchantment.SWEEPING_EDGE);
+            return initialDamage * enchantLevel / (enchantLevel + 1);
+        }
+
+        private void applyDamage(SkillCaster caster, double damageAmount, AbstractEntity attackedEntity) {
+            DamageMetadata meta = getDamageMetadata(caster, damageAmount, EntityDamageEvent.DamageCause.ENTITY_ATTACK);
+            SkillAdapter.get().doDamage(meta, attackedEntity);
         }
 
         @NotNull
-        private static DamageMetadata getDamageMetadata(SkillCaster caster, double amount) {
-            DamageMetadata meta = new DamageMetadata(caster, amount, Maps.newTreeMap(), Maps.newTreeMap(), null, amount, false, true, false, false, EntityDamageEvent.DamageCause.ENTITY_ATTACK);
+        private static DamageMetadata getDamageMetadata(SkillCaster caster, double amount, EntityDamageEvent.DamageCause cause) {
+            DamageMetadata meta = new DamageMetadata(caster, amount, Maps.newTreeMap(), Maps.newTreeMap(), null, 1, false, true, false, false, cause);
             meta.putBoolean("trigger_skills", false);
             meta.putBoolean("ignore_invulnerability", true);
             meta.putBoolean("damages_helmet", false);
@@ -115,5 +151,7 @@ public class PlayerListener implements Listener {
             meta.putBoolean("ignore_resistance", false);
             return meta;
         }
+
+
     }
 }
