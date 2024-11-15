@@ -1,16 +1,22 @@
 package net.azisaba.lifenewpve.listeners;
 
 import io.lumine.mythic.api.adapters.AbstractEntity;
+import io.lumine.mythic.bukkit.MythicBukkit;
 import io.lumine.mythic.bukkit.events.MythicConditionLoadEvent;
 import io.lumine.mythic.bukkit.events.MythicDamageEvent;
 import io.lumine.mythic.bukkit.events.MythicMechanicLoadEvent;
+import io.lumine.mythic.core.mobs.ActiveMob;
 import net.azisaba.lifenewpve.LifeNewPvE;
 import net.azisaba.lifenewpve.mythicmobs.ContainRegion;
 import net.azisaba.lifenewpve.mythicmobs.FromSurface;
 import net.azisaba.lifenewpve.mythicmobs.MythicInRadius;
 import net.azisaba.lifenewpve.mythicmobs.SetFallDistance;
+import net.azisaba.lifenewpve.packet.PacketHandler;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -18,6 +24,10 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
+
+import java.text.NumberFormat;
+import java.util.Map;
+import java.util.Random;
 
 public class MythicListener implements Listener {
 
@@ -83,14 +93,63 @@ public class MythicListener implements Listener {
 
     public static class Damage extends MythicListener {
 
-        @EventHandler(priority = EventPriority.LOWEST)
-        public void onDamage(@NotNull MythicDamageEvent e) {
-            AbstractEntity ab = e.getTarget();
-            if (!ab.isDamageable() || !ab.isLiving()) return;
+        private static final Random RANDOM = new Random();
 
-            double a = ab.getArmor();
-            double t = ab.getArmorToughness();
-            e.setDamage(damageMath(e.getDamage(), a, t));
+        @EventHandler(priority = EventPriority.LOWEST)
+        public void onDamage(@NotNull MythicDamageEvent event) {
+            AbstractEntity target = event.getTarget();
+            if (!target.isDamageable() || !target.isLiving()) return;
+
+            double armor = target.getArmor();
+            double toughness = target.getArmorToughness();
+            event.setDamage(damageMath(event.getDamage(), armor, toughness));
+        }
+
+        @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+        public void onDisplay(@NotNull MythicDamageEvent event) {
+            AbstractEntity attacker = event.getCaster().getEntity();
+            if (!attacker.isPlayer()) return;
+
+            Player player = (Player) attacker.asPlayer().getBukkitEntity();
+            AbstractEntity victim = event.getTarget();
+            if (victim.isPlayer()) return;
+
+            ActiveMob mob = MythicBukkit.inst().getMobManager().getActiveMob(victim.getUniqueId()).orElse(null);
+            if (mob == null) return;
+
+            String element = event.getDamageMetadata().getElement();
+            double multiplier = mob.getType().getDamageModifiers().getOrDefault(element, 1.0);
+            double damage = formatDamage(event.getDamage() * multiplier);
+            Location location = getRandomLocation(victim.getBukkitEntity().getLocation());
+            Component component = MiniMessage.miniMessage().deserialize(getDamageElement(element) + damage);
+
+            int id = RANDOM.nextInt(Integer.MAX_VALUE);
+            PacketHandler.spawnTextDisplay(player, location.getX(), location.getY(), location.getZ(), id);
+            PacketHandler.setTextDisplayMeta(player, id, component);
+
+            JavaPlugin.getPlugin(LifeNewPvE.class).runSyncDelayed(() -> PacketHandler.removeTextDisplay(player, id), 30);
+        }
+
+        private double formatDamage(double amount) {
+            NumberFormat numberFormat = NumberFormat.getInstance();
+            numberFormat.setMaximumFractionDigits(2);
+            return Double.parseDouble(numberFormat.format(amount));
+        }
+
+        @NotNull
+        private Location getRandomLocation(@NotNull Location location) {
+            return location.add(RANDOM.nextInt(4) * 0.5 - 1, RANDOM.nextInt(5) * 0.1 + 1.8 , RANDOM.nextInt(4) * 0.5 - 1);
+        }
+
+        @NotNull
+        private String getDamageElement(String element) {
+            String prefix = "<red><bold>⚔";
+            if (element == null) return prefix;
+
+            return LifeNewPvE.getColors().entrySet().stream()
+                    .filter(entry -> element.equalsIgnoreCase(entry.getKey()))
+                    .map(Map.Entry::getValue)
+                    .findFirst().map(prefix::concat).orElse(prefix);
         }
     }
 }

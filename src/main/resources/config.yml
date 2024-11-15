@@ -1,3 +1,10 @@
 Spawn:
 
+Colors:
+  RED: "<#ff0000><bold>"
+  BLUE: "<#0000ff><bold>"
+  GREEN: "<#00ff00><bold>"
+  AQUA: "<#00ffff><bold>"
+  PURPLE: "<#7a49a5><bold>"
+
 SavePoint:

@@ -9,12 +9,17 @@ import org.bukkit.Bukkit;
 import org.bukkit.Difficulty;
 import org.bukkit.World;
 import org.bukkit.WorldType;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 public final class LifeNewPvE extends JavaPlugin implements Task {
+
+    private static final Map<String, String> COLORS = new HashMap<>();
 
     @Override
     public void onEnable() {
@@ -25,10 +30,23 @@ public final class LifeNewPvE extends JavaPlugin implements Task {
         MythicListener.reloadMythic(20);
         spawnNotification();
         updatePointData();
+        updateColors();
     }
 
     private void updatePointData() {
        SavePointCommand.updateTags();
+    }
+
+    private void updateColors() {
+        ConfigurationSection cs = getConfig().getConfigurationSection("Colors");
+        if (cs == null) return;
+        for (String key : cs.getKeys(false)) {
+            COLORS.put(key, cs.getString("Colors." + key));
+        }
+    }
+
+    public static Map<String, String> getColors() {
+        return COLORS;
     }
 
     private void registerListeners() {

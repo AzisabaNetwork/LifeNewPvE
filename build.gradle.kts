@@ -5,6 +5,8 @@
 plugins {
     `java-library`
     `maven-publish`
+    id("io.github.goooler.shadow") version "8.1.8"
+    id("io.papermc.paperweight.userdev") version "1.7.4"
 }
 
 repositories {
@@ -21,6 +23,7 @@ dependencies {
     compileOnly("io.lumine:Mythic-Dist:5.7.2")
     compileOnly("com.onarandombox.multiversecore:multiverse-core:4.3.12")
     compileOnly("com.sk89q.worldguard:worldguard-bukkit:7.0.12")
+    paperweight.paperDevBundle("1.21.1-R0.1-SNAPSHOT")
 }
 
 group = "net.azisaba"
