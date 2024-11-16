@@ -26,6 +26,12 @@ commands:
       - worldTeleport
       - wsp
       - ws
+  worldset:
+    permission: lifenewpve.command.worldset
+    aliases:
+      - wset
+      - wse
+      - wst
   spawn:
     permission: lifenewpve.command.spawn
     aliases:

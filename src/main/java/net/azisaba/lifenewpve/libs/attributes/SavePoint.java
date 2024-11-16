@@ -49,8 +49,9 @@ public class SavePoint {
 
                     Location loc = point.loc();
                     ClickEvent event = ClickEvent.runCommand("/tp " + loc.getBlockX() + " " + loc.getBlockY() + " " + loc.getBlockZ());
-                    player.sendMessage(getInfoMessage(point, formattedTimeMessage).clickEvent(event));
+                    player.sendMessage(getInfoMessage(point, formattedTimeMessage).clickEvent(event).clickEvent(ClickEvent.copyToClipboard(point.unique())));
                 });
+        player.sendMessage(Component.text("§7メッセージをクリックで、TP先の固有名をcopyします。"));
     }
 
     private long calculateRemainingTime(long taskDurationInSeconds) {

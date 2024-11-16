@@ -37,7 +37,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.PluginManager;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.UUID;
+
 public class PlayerListener implements Listener {
+
     public void initialize(LifeNewPvE lifeNewPvE) {
         PluginManager pm = Bukkit.getPluginManager();
         pm.registerEvents(new PlayerListener.Command(), lifeNewPvE);
@@ -95,8 +98,6 @@ public class PlayerListener implements Listener {
 
         @EventHandler(priority = org.bukkit.event.EventPriority.HIGHEST, ignoreCancelled = true)
         public void onPre(@NotNull PrePlayerAttackEntityEvent event) {
-            if (!event.willAttack()) return;
-
             ActiveMob mob = MythicBukkit.inst().getAPIHelper().getMythicMobInstance(event.getAttacked());
             if (mob == null) return;
 
@@ -118,7 +119,7 @@ public class PlayerListener implements Listener {
                 player.playSound(player, Sound.ENTITY_PLAYER_ATTACK_CRIT, 1, 1);
                 damageAmount*= 1.5;
             } else if (isSweepingAttack) {
-                handleSweepingAttack(event, caster, mainHandItem, damageAmount);
+                handleSweepingAttack(event, caster, mainHandItem, damageAmount, mob.getUniqueId());
             } else {
                 player.playSound(player, Sound.ENTITY_PLAYER_ATTACK_STRONG, 1, 1);
             }
@@ -133,11 +134,14 @@ public class PlayerListener implements Listener {
             return EnchantmentHelper.modifyDamage(level, CraftItemStack.asNMSCopy(itemStack), ((CraftEntity) entity).getHandle(), level.damageSources().playerAttack(serverPlayer), damageAmount);
         }
 
-        private void handleSweepingAttack(@NotNull PrePlayerAttackEntityEvent event, SkillCaster caster, @NotNull ItemStack item, double damageAmount) {
+        private void handleSweepingAttack(@NotNull PrePlayerAttackEntityEvent event, SkillCaster caster, @NotNull ItemStack item, double damageAmount, UUID uuid) {
             double sweepingDamage = item.hasItemMeta() && item.getItemMeta().hasEnchant(Enchantment.SWEEPING_EDGE) ?
-                    calculateSweepingDamage(item, damageAmount) : 1;
+                    calculateSweepingDamage(item, damageAmount) : 0;
+            if (sweepingDamage <= 0) return;
             DamageMetadata metaData = getDamageMetadata(caster, sweepingDamage, EntityDamageEvent.DamageCause.ENTITY_SWEEP_ATTACK);
-            event.getAttacked().getLocation().getNearbyLivingEntities(1.5, 0.1, 1.5)
+            event.getAttacked().getLocation().getNearbyLivingEntities(1, 0, 1)
+                    .stream()
+                    .filter(l -> !l.getUniqueId().equals(uuid))
                     .forEach(entity -> SkillAdapter.get().doDamage(metaData, BukkitAdapter.adapt(entity)));
         }
 

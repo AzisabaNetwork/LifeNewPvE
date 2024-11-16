@@ -57,10 +57,12 @@ public final class LifeNewPvE extends JavaPlugin implements Task {
         new WorldListener().initialize(this);
         new EnchantListener().initialize(this);
         new PrepareListener(this).initialize();
+        new ChunkListener().initialize(this);
     }
 
     private void registerCommands() {
         Objects.requireNonNull(getCommand("worldregen")).setExecutor(new WorldRegenCommand(this));
+        Objects.requireNonNull(getCommand("worldset")).setExecutor(new WorldSetCommand());
         Objects.requireNonNull(getCommand("worldcreate")).setExecutor(new WorldCreateCommand(this));
         Objects.requireNonNull(getCommand("worldteleport")).setExecutor(new WorldTeleportCommand());
         Objects.requireNonNull(getCommand("spawn")).setExecutor(new SpawnCommand(this));
