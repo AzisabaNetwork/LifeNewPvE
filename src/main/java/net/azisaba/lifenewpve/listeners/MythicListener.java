@@ -94,12 +94,16 @@ public class MythicListener implements Listener {
     public static class Damage extends MythicListener {
 
         private static final Random RANDOM = new Random();
+        private static final int DISPLAY_DURATION_TICKS = 30;
+        private static final int RANDOM_BOUND = 4;
+        private static final double RANDOM_SCALE = 0.5;
+        private static final double BASE_Y_OFFSET = 1.8;
+        private static final String DAMAGE_PREFIX = "<red><bold>⚔";
 
         @EventHandler(priority = EventPriority.LOWEST)
         public void onDamage(@NotNull MythicDamageEvent event) {
             AbstractEntity target = event.getTarget();
             if (!target.isDamageable() || !target.isLiving()) return;
-
             double armor = target.getArmor();
             double toughness = target.getArmorToughness();
             event.setDamage(damageMath(event.getDamage(), armor, toughness));
@@ -109,7 +113,6 @@ public class MythicListener implements Listener {
         public void onDisplay(@NotNull MythicDamageEvent event) {
             AbstractEntity attacker = event.getCaster().getEntity();
             if (!attacker.isPlayer()) return;
-
             Player player = (Player) attacker.asPlayer().getBukkitEntity();
             AbstractEntity victim = event.getTarget();
             if (victim.isPlayer()) return;
@@ -117,6 +120,10 @@ public class MythicListener implements Listener {
             ActiveMob mob = MythicBukkit.inst().getMobManager().getActiveMob(victim.getUniqueId()).orElse(null);
             if (mob == null) return;
 
+            showDamageDisplay(event, player, victim, mob);
+        }
+
+        private void showDamageDisplay(@NotNull MythicDamageEvent event, Player player, @NotNull AbstractEntity victim, @NotNull ActiveMob mob) {
             String element = event.getDamageMetadata().getElement();
             double multiplier = mob.getType().getDamageModifiers().getOrDefault(element, 1.0);
             double damage = formatDamage(event.getDamage() * multiplier);
@@ -127,7 +134,7 @@ public class MythicListener implements Listener {
             PacketHandler.spawnTextDisplay(player, location.getX(), location.getY(), location.getZ(), id);
             PacketHandler.setTextDisplayMeta(player, id, component);
 
-            JavaPlugin.getPlugin(LifeNewPvE.class).runSyncDelayed(() -> PacketHandler.removeTextDisplay(player, id), 30);
+            JavaPlugin.getPlugin(LifeNewPvE.class).runSyncDelayed(() -> PacketHandler.removeTextDisplay(player, id), DISPLAY_DURATION_TICKS);
         }
 
         private double formatDamage(double amount) {
@@ -138,18 +145,20 @@ public class MythicListener implements Listener {
 
         @NotNull
         private Location getRandomLocation(@NotNull Location location) {
-            return location.add(RANDOM.nextInt(4) * 0.5 - 1, RANDOM.nextInt(5) * 0.1 + 1.8 , RANDOM.nextInt(4) * 0.5 - 1);
+            return location.add(
+                    RANDOM.nextInt(RANDOM_BOUND) * RANDOM_SCALE - 1,
+                    RANDOM.nextInt(RANDOM_BOUND + 1) * 0.1 + BASE_Y_OFFSET,
+                    RANDOM.nextInt(RANDOM_BOUND) * RANDOM_SCALE - 1
+            );
         }
 
         @NotNull
         private String getDamageElement(String element) {
-            String prefix = "<red><bold>⚔";
-            if (element == null) return prefix;
-
+            if (element == null) return DAMAGE_PREFIX;
             return LifeNewPvE.getColors().entrySet().stream()
                     .filter(entry -> element.equalsIgnoreCase(entry.getKey()))
                     .map(Map.Entry::getValue)
-                    .findFirst().map(prefix::concat).orElse(prefix);
+                    .findFirst().map(DAMAGE_PREFIX::concat).orElse(DAMAGE_PREFIX);
         }
     }
 }

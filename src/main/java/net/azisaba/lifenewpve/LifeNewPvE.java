@@ -41,7 +41,7 @@ public final class LifeNewPvE extends JavaPlugin implements Task {
         ConfigurationSection cs = getConfig().getConfigurationSection("Colors");
         if (cs == null) return;
         for (String key : cs.getKeys(false)) {
-            COLORS.put(key, cs.getString("Colors." + key));
+            COLORS.put(key, getConfig().getString("Colors." + key));
         }
     }
 
