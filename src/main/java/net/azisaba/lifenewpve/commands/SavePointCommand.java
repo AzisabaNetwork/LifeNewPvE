@@ -113,7 +113,7 @@ public class SavePointCommand implements TabExecutor {
                 long time = l - Instant.now().getEpochSecond();
                 LifeTime lifeTime = new LifeTime();
                 String m = lifeTime.getTimer(time);
-                p.sendMessage(new SavePoint(plugin, lifeTime).getInfoMessage(point, m));
+                p.sendMessage(new SavePoint(plugin, lifeTime).getInfoMessage(point, m, p));
             }
         });
     }

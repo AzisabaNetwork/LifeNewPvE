@@ -41,6 +41,7 @@ public class SpawnCommand implements CommandExecutor {
             sender.sendMessage(Component.text("§c§lプレイヤーでないため、スポーンにテレポートできません。"));
             return false;
         }
+        if (p.getWorld().getName().equals("world")) return false;
         if (p.teleport(loc)) {
             p.sendMessage(Component.text("§a§lスポーンにテレポートしました！"));
             return true;

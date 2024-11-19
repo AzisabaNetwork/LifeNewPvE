@@ -33,9 +33,8 @@ public class SavePoint {
 
                     String formattedTimeMessage = lifeTime.getTimer(remainingTime);
                     ClickEvent event = ClickEvent.copyToClipboard(point.unique());
-                    player.sendMessage(getInfoMessage(point, formattedTimeMessage).clickEvent(event));
+                    player.sendMessage(getInfoMessage(point, formattedTimeMessage, player).clickEvent(event));
                 });
-        player.sendMessage(Component.text("§7メッセージをクリックで、固有名をcopyできます。"));
     }
 
     public void teleportPoints(@NotNull Set<Point> points, @NotNull Player player) {
@@ -48,10 +47,11 @@ public class SavePoint {
                     String formattedTimeMessage = lifeTime.getTimer(remainingTime);
 
                     Location loc = point.loc();
-                    ClickEvent event = ClickEvent.runCommand("/tp " + loc.getBlockX() + " " + loc.getBlockY() + " " + loc.getBlockZ());
-                    player.sendMessage(getInfoMessage(point, formattedTimeMessage).clickEvent(event).clickEvent(ClickEvent.copyToClipboard(point.unique())));
+                    loc.getBlockX();
+                    loc.getBlockY();
+                    loc.getBlockZ();
+                    player.sendMessage(getInfoMessage(point, formattedTimeMessage, player));
                 });
-        player.sendMessage(Component.text("§7メッセージをクリックで、TP先の固有名をcopyします。"));
     }
 
     private long calculateRemainingTime(long taskDurationInSeconds) {
@@ -114,7 +114,7 @@ public class SavePoint {
     }
 
     @NotNull
-    public Component getInfoMessage(@NotNull Point point, @NotNull String message) {
+    public Component getInfoMessage(@NotNull Point point, @NotNull String message, @NotNull Player player) {
         Location location = point.loc();
         double xCoordinate = location.getBlockX() + 0.5;
         double yCoordinate = location.getBlockY();
@@ -123,12 +123,19 @@ public class SavePoint {
         String hoverText = createHoverText(point, xCoordinate, yCoordinate, zCoordinate);
         HoverEvent<Component> hoverEvent = HoverEvent.showText(Component.text(hoverText));
 
-        String s = " §fName: §b" + point.unique();
-        if (!message.equals("§a")) {
-            s+= " §cExpires: " + message;
-        }
+        Component loc = Component.text("\n§f§lLocation  §a§l➜　§a§l" + xCoordinate + " " + yCoordinate + " " + zCoordinate + "§e§lクリックでTP")
+                .clickEvent(ClickEvent.runCommand("/ws " + location.getWorld().getName() + " " + player.getName() + " " + xCoordinate + "," + yCoordinate + "," + zCoordinate));
 
-        return Component.text(s).hoverEvent(hoverEvent);
+        String s = "§f§lName  §a§l➜　§b§l" + point.unique();
+        if (!message.equals("§a")) {
+            s+= "  §c§lExpires: " + message;
+        }
+        s+= " §e§lクリックでCopy";
+
+        return Component.text(s)
+                .clickEvent(ClickEvent.copyToClipboard(point.unique()))
+                .hoverEvent(hoverEvent)
+                .append(loc);
     }
 
     @NotNull

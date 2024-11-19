@@ -1,21 +1,26 @@
 package net.azisaba.lifenewpve.listeners;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import io.lumine.mythic.api.adapters.AbstractEntity;
+import io.lumine.mythic.api.adapters.AbstractPlayer;
+import io.lumine.mythic.bukkit.BukkitAdapter;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import io.lumine.mythic.bukkit.events.MythicConditionLoadEvent;
 import io.lumine.mythic.bukkit.events.MythicDamageEvent;
 import io.lumine.mythic.bukkit.events.MythicMechanicLoadEvent;
+import io.lumine.mythic.bukkit.events.MythicReloadedEvent;
 import io.lumine.mythic.core.mobs.ActiveMob;
 import net.azisaba.lifenewpve.LifeNewPvE;
-import net.azisaba.lifenewpve.mythicmobs.ContainRegion;
-import net.azisaba.lifenewpve.mythicmobs.FromSurface;
-import net.azisaba.lifenewpve.mythicmobs.MythicInRadius;
-import net.azisaba.lifenewpve.mythicmobs.SetFallDistance;
+import net.azisaba.lifenewpve.libs.CoolTime;
+import net.azisaba.lifenewpve.mythicmobs.*;
 import net.azisaba.lifenewpve.packet.PacketHandler;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -26,8 +31,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.text.NumberFormat;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 public class MythicListener implements Listener {
 
@@ -36,6 +40,7 @@ public class MythicListener implements Listener {
         pm.registerEvents(new MythicListener.Conditions(), plugin);
         pm.registerEvents(new MythicListener.Mechanics(), plugin);
         pm.registerEvents(new MythicListener.Damage(), plugin);
+        pm.registerEvents(new MythicListener.Reload(), plugin);
     }
 
     public static double damageMath(double damage, double a, double t) {
@@ -65,6 +70,14 @@ public class MythicListener implements Listener {
         Bukkit.getOnlinePlayers().forEach(p -> p.sendMessage(Component.text("§a§lMythicMobsのリロードが行われます。")));
     }
 
+    public static class Reload extends MythicListener {
+
+        @EventHandler
+        public void onReload(@NotNull MythicReloadedEvent e) {
+            new Placeholder(e.getInstance().getPlaceholderManager()).init();
+        }
+    }
+
     public static class Conditions extends MythicListener {
 
         @EventHandler
@@ -87,10 +100,13 @@ public class MythicListener implements Listener {
             String s = e.getMechanicName();
             if (s.equalsIgnoreCase("setFallDistance")) {
                 e.register(new SetFallDistance(e.getConfig()));
+            } else if (s.equalsIgnoreCase("raidBoss")) {
+                e.register(new RaidBoss());
             }
         }
     }
 
+    @SuppressWarnings("ConstantValue")
     public static class Damage extends MythicListener {
 
         private static final Random RANDOM = new Random();
@@ -159,6 +175,71 @@ public class MythicListener implements Listener {
                     .filter(entry -> element.equalsIgnoreCase(entry.getKey()))
                     .map(Map.Entry::getValue)
                     .findFirst().map(DAMAGE_PREFIX::concat).orElse(DAMAGE_PREFIX);
+        }
+
+        private static final Multimap<Class<?>, UUID> ct = HashMultimap.create();
+
+        @EventHandler(priority = EventPriority.LOWEST)
+        public void onCombatRaidBoss(@NotNull MythicDamageEvent e) {
+            AbstractEntity ab = e.getTarget();
+            ActiveMob mob = MythicBukkit.inst().getMobManager().getActiveMob(ab.getUniqueId()).orElse(null);
+            if (mob == null) return;
+            if (!mob.hasThreatTable()) return;
+
+            NamespacedKey key = new NamespacedKey(JavaPlugin.getPlugin(LifeNewPvE.class), "raid_boss");
+            if (!ab.getDataContainer().has(key)) return;
+
+            int coolTime = 20;
+            if (CoolTime.isCoolTime(getClass(), ab.getUniqueId(), ct)) return;
+            CoolTime.setCoolTime(getClass(), ab.getUniqueId(), ct, coolTime);
+
+            JavaPlugin.getPlugin(LifeNewPvE.class).runSyncDelayed(() -> {
+                if (ab == null) return;
+                if (mob == null) return;
+
+                Set<Player> players = getNearByPlayers(ab, getPlayerAmount(mob.getThreatTable()));
+
+                double max = mob.getType().getHealth(mob) * getHealthPerPlayer(players.size());
+                double now = ab.getHealth() * getHealthPerPlayer(players.size());
+
+                if (ab.getMaxHealth() == max) return;
+                double scale = max / ab.getMaxHealth();
+                double d = now * scale;
+
+                ab.setMaxHealth(max);
+
+                double set = ab.getHealth() * scale;
+                if (scale < 1) set = d;
+                ab.setHealth(set);
+
+            }, 1);
+        }
+
+        private @NotNull Set<Player> getNearByPlayers(AbstractEntity ab, @NotNull Set<AbstractPlayer> set) {
+            Set<Player> players = new HashSet<>();
+            for (AbstractPlayer ap : set) {
+                Player p = BukkitAdapter.adapt(ap);
+                if (!p.getWorld().getName().equals(ab.getWorld().getName())) continue;
+                if (!p.isOnline()) continue;
+                if (p.getGameMode().equals(GameMode.CREATIVE) || p.getGameMode().equals(GameMode.SPECTATOR)) continue;
+                if (ab.getBukkitEntity().getLocation().distance(p.getLocation()) <= 64) {
+                    players.add(p);
+                }
+            }
+            return players;
+        }
+
+        private @NotNull Set<AbstractPlayer> getPlayerAmount(@NotNull ActiveMob.ThreatTable table) {
+            Set<AbstractPlayer> players = new HashSet<>();
+            for (AbstractEntity entity : table.getAllThreatTargets()) {
+                if (!entity.isPlayer()) continue;
+                players.add(entity.asPlayer());
+            }
+            return players;
+        }
+
+        private double getHealthPerPlayer(double n) {
+            return n - 0.25 * (n - 1);
         }
     }
 }

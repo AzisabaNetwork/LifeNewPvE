@@ -11,6 +11,7 @@ import io.lumine.mythic.bukkit.MythicBukkit;
 import io.lumine.mythic.core.mobs.ActiveMob;
 import io.papermc.paper.event.player.PrePlayerAttackEntityEvent;
 import net.azisaba.lifenewpve.LifeNewPvE;
+import net.azisaba.lifenewpve.commands.ModeCommand;
 import net.azisaba.lifenewpve.libs.VectorTask;
 import net.azisaba.lifenewpve.commands.WorldTeleportCommand;
 import net.minecraft.server.level.ServerLevel;
@@ -29,10 +30,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.player.PlayerChangedWorldEvent;
-import org.bukkit.event.player.PlayerCommandPreprocessEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.PluginManager;
 import org.jetbrains.annotations.NotNull;
@@ -48,6 +46,7 @@ public class PlayerListener implements Listener {
         pm.registerEvents(new PlayerListener.ChangeWorld(), lifeNewPvE);
         pm.registerEvents(new PlayerListener.Interact(), lifeNewPvE);
         pm.registerEvents(new PlayerListener.Pre(), lifeNewPvE);
+        pm.registerEvents(new PlayerListener.Join(), lifeNewPvE);
     }
 
     public static class Interact extends PlayerListener implements VectorTask {
@@ -76,9 +75,22 @@ public class PlayerListener implements Listener {
         @EventHandler
         public void onWorldChange(@NotNull PlayerChangedWorldEvent e) {
             Player p = e.getPlayer();
+            //リセット中ワールドに入れないようにする。
             if (MultiverseListener.isResetWorld(p.getWorld().getName())) {
                 p.teleport(e.getFrom().getSpawnLocation());
             }
+
+            //ワールドを変えたら運営モードをoffにする。
+            ModeCommand.switchMode(p, false);
+        }
+    }
+
+    public static class Join extends PlayerListener {
+
+        @EventHandler
+        public void onJoin(@NotNull PlayerJoinEvent e) {
+            Player p = e.getPlayer();
+            ModeCommand.switchMode(p, false);
         }
     }
 
