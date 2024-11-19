@@ -1,4 +1,4 @@
-package net.azisaba.lifenewpve.mythicmobs;
+package net.azisaba.lifenewpve.mythicmobs.mechanics;
 
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.skills.ISkillMechanic;

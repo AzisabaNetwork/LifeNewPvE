@@ -1,4 +1,4 @@
-package net.azisaba.lifenewpve.mythicmobs;
+package net.azisaba.lifenewpve.mythicmobs.conditons;
 
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.adapters.AbstractLocation;

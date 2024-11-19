@@ -35,6 +35,7 @@ public interface VectorTask {
             if (livingEntity == null || player == null) return;
             if (livingEntity.isOnGround()) return;
             if (livingEntity.isInLava() || livingEntity.isInWater()) return;
+            if (player.isGliding() || player.isFlying()) return;
             if (player.isInLava() || player.isInWater()) return;
         }
         Vector currentVelocity = livingEntity.getVelocity();

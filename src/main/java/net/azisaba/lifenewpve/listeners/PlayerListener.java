@@ -12,12 +12,14 @@ import io.lumine.mythic.core.mobs.ActiveMob;
 import io.papermc.paper.event.player.PrePlayerAttackEntityEvent;
 import net.azisaba.lifenewpve.LifeNewPvE;
 import net.azisaba.lifenewpve.commands.ModeCommand;
+import net.azisaba.lifenewpve.libs.Mana;
 import net.azisaba.lifenewpve.libs.VectorTask;
 import net.azisaba.lifenewpve.commands.WorldTeleportCommand;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.entity.CraftEntity;
@@ -33,6 +35,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
@@ -60,13 +63,24 @@ public class PlayerListener implements Listener {
             applyVelocityAndRunTask(player, player, getVector(block, player));
 
         }
+
+        @EventHandler
+        public void onInteractFireWork(@NotNull PlayerInteractEvent e) {
+            ItemStack item = e.getItem();
+            if (item == null) return;
+            if (item.getType() == Material.FIREWORK_ROCKET) {
+                e.setCancelled(true);
+            }
+        }
     }
 
     public static class Quit extends PlayerListener {
 
         @EventHandler
         public void onQuit(@NotNull PlayerQuitEvent e) {
-            WorldTeleportCommand.clearTeleporting(e.getPlayer());
+            Player p = e.getPlayer();
+            WorldTeleportCommand.clearTeleporting(p);
+            ManaListener.Modify.removeBossBar(p.getUniqueId());
         }
     }
 
@@ -90,7 +104,11 @@ public class PlayerListener implements Listener {
         @EventHandler
         public void onJoin(@NotNull PlayerJoinEvent e) {
             Player p = e.getPlayer();
-            ModeCommand.switchMode(p, false);
+            JavaPlugin.getPlugin(LifeNewPvE.class).runSyncDelayed(()-> {
+
+                ModeCommand.switchMode(p, false);
+                new Mana(p).runTaskLaterAsynchronously(JavaPlugin.getPlugin(LifeNewPvE.class), 100);
+            }, 40);
         }
     }
 
@@ -138,6 +156,7 @@ public class PlayerListener implements Listener {
 
             applyDamage(caster, calculateEnchantDamage(player, mainHandItem, event.getAttacked(), (float) damageAmount), mob.getEntity());
             event.setCancelled(true);
+            Mana.modifyMana(player, 0.05);
         }
 
         private double calculateEnchantDamage(Player player, ItemStack itemStack, Entity entity, float damageAmount) {
@@ -165,6 +184,7 @@ public class PlayerListener implements Listener {
         private void applyDamage(SkillCaster caster, double damageAmount, AbstractEntity attackedEntity) {
             DamageMetadata meta = getDamageMetadata(caster, damageAmount, EntityDamageEvent.DamageCause.ENTITY_ATTACK);
             SkillAdapter.get().doDamage(meta, attackedEntity);
+
         }
 
         @NotNull
@@ -180,7 +200,5 @@ public class PlayerListener implements Listener {
             meta.putBoolean("ignore_resistance", false);
             return meta;
         }
-
-
     }
 }

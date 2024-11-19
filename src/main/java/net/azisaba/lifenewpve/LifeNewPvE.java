@@ -2,6 +2,7 @@ package net.azisaba.lifenewpve;
 
 import com.onarandombox.MultiverseCore.MultiverseCore;
 import net.azisaba.lifenewpve.commands.*;
+import net.azisaba.lifenewpve.libs.Mana;
 import net.azisaba.lifenewpve.listeners.*;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -31,6 +32,12 @@ public final class LifeNewPvE extends JavaPlugin implements Task {
         spawnNotification();
         updatePointData();
         updateColors();
+
+        Bukkit.getOnlinePlayers().forEach(p -> new Mana(p).runTaskLaterAsynchronously(JavaPlugin.getPlugin(LifeNewPvE.class), 100));
+    }
+    @Override
+    public void onDisable() {
+        ManaListener.Modify.removeAll();
     }
 
     private void updatePointData() {
@@ -58,6 +65,7 @@ public final class LifeNewPvE extends JavaPlugin implements Task {
         new EnchantListener().initialize(this);
         new PrepareListener(this).initialize();
         new ChunkListener().initialize(this);
+        new ManaListener().initialize(this);
     }
 
     private void registerCommands() {

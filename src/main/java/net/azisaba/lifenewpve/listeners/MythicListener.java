@@ -6,14 +6,19 @@ import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.api.adapters.AbstractPlayer;
 import io.lumine.mythic.bukkit.BukkitAdapter;
 import io.lumine.mythic.bukkit.MythicBukkit;
-import io.lumine.mythic.bukkit.events.MythicConditionLoadEvent;
-import io.lumine.mythic.bukkit.events.MythicDamageEvent;
-import io.lumine.mythic.bukkit.events.MythicMechanicLoadEvent;
-import io.lumine.mythic.bukkit.events.MythicReloadedEvent;
+import io.lumine.mythic.bukkit.events.*;
 import io.lumine.mythic.core.mobs.ActiveMob;
 import net.azisaba.lifenewpve.LifeNewPvE;
 import net.azisaba.lifenewpve.libs.CoolTime;
+import net.azisaba.lifenewpve.libs.Mana;
 import net.azisaba.lifenewpve.mythicmobs.*;
+import net.azisaba.lifenewpve.mythicmobs.conditons.ContainRegion;
+import net.azisaba.lifenewpve.mythicmobs.conditons.FromSurface;
+import net.azisaba.lifenewpve.mythicmobs.conditons.HasMana;
+import net.azisaba.lifenewpve.mythicmobs.conditons.MythicInRadius;
+import net.azisaba.lifenewpve.mythicmobs.mechanics.ModifyMana;
+import net.azisaba.lifenewpve.mythicmobs.mechanics.RaidBoss;
+import net.azisaba.lifenewpve.mythicmobs.mechanics.SetFallDistance;
 import net.azisaba.lifenewpve.packet.PacketHandler;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -41,6 +46,7 @@ public class MythicListener implements Listener {
         pm.registerEvents(new MythicListener.Mechanics(), plugin);
         pm.registerEvents(new MythicListener.Damage(), plugin);
         pm.registerEvents(new MythicListener.Reload(), plugin);
+        pm.registerEvents(new MythicListener.Death(), plugin);
     }
 
     public static double damageMath(double damage, double a, double t) {
@@ -81,14 +87,24 @@ public class MythicListener implements Listener {
     public static class Conditions extends MythicListener {
 
         @EventHandler
-        public void onConditions(@NotNull MythicConditionLoadEvent e) {
-            String s = e.getConditionName();
-            if (s.equalsIgnoreCase("mythicInRadius")) {
-                e.register(new MythicInRadius(e.getConfig()));
-            } else if (s.equalsIgnoreCase("fromSurface")) {
-                e.register(new FromSurface(e.getConfig()));
-            } else if (s.equalsIgnoreCase("containRegion")) {
-                e.register(new ContainRegion(e.getConfig()));
+        public void onConditions(@NotNull MythicConditionLoadEvent event) {
+            String conditionName = event.getConditionName();
+            switch (conditionName.toLowerCase()) {
+                case "mythicinradius":
+                    event.register(new MythicInRadius(event.getConfig()));
+                    break;
+                case "fromsurface":
+                    event.register(new FromSurface(event.getConfig()));
+                    break;
+                case "containregion":
+                    event.register(new ContainRegion(event.getConfig()));
+                    break;
+                case "hasmana":
+                    event.register(new HasMana(event.getConfig()));
+                    break;
+                default:
+                    // 未知の条件には何もしません
+                    break;
             }
         }
     }
@@ -96,12 +112,19 @@ public class MythicListener implements Listener {
     public static class Mechanics extends MythicListener {
 
         @EventHandler
-        public void onMechanics(@NotNull MythicMechanicLoadEvent e) {
-            String s = e.getMechanicName();
-            if (s.equalsIgnoreCase("setFallDistance")) {
-                e.register(new SetFallDistance(e.getConfig()));
-            } else if (s.equalsIgnoreCase("raidBoss")) {
-                e.register(new RaidBoss());
+        public void onMechanics(@NotNull MythicMechanicLoadEvent event) {
+            String mechanicName = event.getMechanicName();
+            switch (mechanicName.toLowerCase()) {
+                case "setfalldistance":
+                    event.register(new SetFallDistance(event.getConfig()));
+                    break;
+                case "raidboss":
+                    event.register(new RaidBoss());
+                case "modifymana":
+                    event.register(new ModifyMana(event.getConfig()));
+                default:
+                    // 未知の条件には何もしません
+                    break;
             }
         }
     }
@@ -240,6 +263,15 @@ public class MythicListener implements Listener {
 
         private double getHealthPerPlayer(double n) {
             return n - 0.25 * (n - 1);
+        }
+    }
+
+    public static class Death extends MythicListener {
+
+        @EventHandler
+        public void onDeath(@NotNull MythicMobDeathEvent e) {
+            if (!(e.getKiller() instanceof Player p)) return;
+            Mana.modifyMana(p, 0.01);
         }
     }
 }

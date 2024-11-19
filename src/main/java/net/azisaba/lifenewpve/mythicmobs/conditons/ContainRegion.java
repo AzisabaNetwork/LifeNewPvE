@@ -1,4 +1,4 @@
-package net.azisaba.lifenewpve.mythicmobs;
+package net.azisaba.lifenewpve.mythicmobs.conditons;
 
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldguard.WorldGuard;
