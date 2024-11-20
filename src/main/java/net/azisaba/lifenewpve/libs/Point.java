@@ -1,4 +1,4 @@
-package net.azisaba.lifenewpve.libs.attributes;
+package net.azisaba.lifenewpve.libs;
 
 import org.bukkit.Location;
 import org.jetbrains.annotations.Contract;

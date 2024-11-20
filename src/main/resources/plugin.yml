@@ -7,6 +7,7 @@ depend:
   - MythicMobs
   - Multiverse-Core
   - WorldGuard
+  - LoreEditor
 
 commands:
   worldregen:
@@ -51,6 +52,12 @@ commands:
     permission: lifenewpve.command.mode
     aliases:
       - md
+  setmana:
+    permission: lifenewpve.command.setmana
+    aliases:
+      - addmana
+      - addMana
+      - setMana
 
 permissions:
   lifenewpve.reload.mythicmobs:

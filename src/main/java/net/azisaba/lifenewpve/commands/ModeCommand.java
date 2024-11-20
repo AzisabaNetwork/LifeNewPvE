@@ -1,10 +1,5 @@
 package net.azisaba.lifenewpve.commands;
 
-import com.sk89q.worldguard.LocalPlayer;
-import com.sk89q.worldguard.WorldGuard;
-import com.sk89q.worldguard.bukkit.BukkitPlayer;
-import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
-import com.sk89q.worldguard.session.Session;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -32,33 +27,20 @@ public class ModeCommand implements TabExecutor {
         return true;
     }
 
-    public static void switchMode(Player p, boolean bypass) {
-        Session session = getSession(p);
-        if (session == null) return;
-
-        session.setBypassDisabled(bypass);
+    public static void switchMode(@NotNull Player p, boolean bypass) {
         String mode = bypass ? "enable" : "disable";
-        p.performCommand("egod " + p.getName() + " " + mode);
-        p.performCommand("efly " + p.getName() + " " + mode);
+        p.performCommand("egod " + mode);
+        p.performCommand("efly " + mode);
+        String m = (bypass) ? "on" : "off";
+        p.performCommand("rg bypass " + m);
         p.sendMessage(Component.text("§f§l運営モードを §b§l" + bypass + " §f§lに切り替えました。"));
     }
 
-    public static void switchMode(Player p) {
-        Session session = getSession(p);
-        if (session == null) return;
-
-        boolean disabled = !session.hasBypassDisabled();
-        String mode = disabled ? "enable" : "disable";
-        p.performCommand("egod " + p.getName() + " " + mode);
-        p.performCommand("efly " + p.getName() + " " + mode);
-        session.setBypassDisabled(disabled);
-        p.sendMessage(Component.text("§f§l運営モードを §b§l" + disabled + " §f§lに切り替えました。"));
-    }
-
-    @Nullable
-    private static Session getSession(Player p) {
-        LocalPlayer player = new BukkitPlayer(WorldGuardPlugin.inst(), p);
-        return WorldGuard.getInstance().getPlatform().getSessionManager().getIfPresent(player);
+    public static void switchMode(@NotNull Player p) {
+        p.performCommand("egod " + p.getName());
+        p.performCommand("efly " + p.getName());
+        p.performCommand("rg bypass");
+        p.sendMessage(Component.text("§f§l運営モードを切り替えました。"));
     }
 
     @Override

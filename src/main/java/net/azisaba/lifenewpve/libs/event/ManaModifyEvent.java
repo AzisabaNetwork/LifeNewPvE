@@ -18,10 +18,13 @@ public class ManaModifyEvent extends Event implements Cancellable {
 
     private long add;
 
-    public ManaModifyEvent(Player player, long before, long add) {
+    private final Type type;
+
+    public ManaModifyEvent(Player player, long before, long add, Type type) {
         this.player = player;
         this.before = before;
         this.add = add;
+        this.type = type;
     }
 
     public Player getPlayer() {
@@ -30,6 +33,10 @@ public class ManaModifyEvent extends Event implements Cancellable {
 
     public long getBefore() {
         return before;
+    }
+
+    public Type getType() {
+        return type;
     }
 
     public long getAdd() {
@@ -58,5 +65,9 @@ public class ManaModifyEvent extends Event implements Cancellable {
     @Override
     public void setCancelled(boolean cancelled) {
         this.cancelled = cancelled;
+    }
+
+    public enum Type {
+        AUTO_REGEN, MELEE, MYTHIC_KILL, CUSTOM
     }
 }

@@ -53,21 +53,46 @@ public class ManaListener implements Listener {
         }
 
         private static double getMax(@NotNull Player p) {
-            return Mana.getMaxMana(p.getPersistentDataContainer());
+            return Mana.getMaxMana(p, p.getPersistentDataContainer());
         }
+
+        private static final int MAX_VISIBLE_COUNT = 5;
+        private static final int INITIAL_DELAY = 20;
 
         private static void subtractVisibleCount(UUID playerId) {
             JavaPlugin.getPlugin(LifeNewPvE.class).runAsyncDelayed(() -> {
-                VISIBLE_COUNT.merge(playerId, -1, Integer::sum);
-                if (VISIBLE_COUNT.getOrDefault(playerId, 0) <= 0) {
-                    removeBossBar(playerId);
-                } else {
-                    if (VISIBLE_COUNT.get(playerId) > 5) {
-                        VISIBLE_COUNT.put(playerId, 5);
-                    }
-                    subtractVisibleCount(playerId);
+                decrementVisibleCount(playerId);
+                ensureVisibleCountWithinLimits(playerId);
+                handleBossBarVisibility(playerId);
+            }, INITIAL_DELAY);
+        }
+
+        private static void decrementVisibleCount(UUID playerId) {
+            VISIBLE_COUNT.merge(playerId, -1, Integer::sum);
+        }
+
+        private static void ensureVisibleCountWithinLimits(UUID playerId) {
+            if (VISIBLE_COUNT.containsKey(playerId)) {
+                int count = VISIBLE_COUNT.get(playerId);
+                if (count > MAX_VISIBLE_COUNT) {
+                    VISIBLE_COUNT.put(playerId, MAX_VISIBLE_COUNT);
                 }
-            }, 20);
+            }
+        }
+
+        private static void handleBossBarVisibility(UUID playerId) {
+            if (getVisibleCount(playerId) <= 0) {
+                removeBossBar(playerId);
+            } else {
+                if (getVisibleCount(playerId) > MAX_VISIBLE_COUNT) {
+                    VISIBLE_COUNT.put(playerId, MAX_VISIBLE_COUNT);
+                }
+                subtractVisibleCount(playerId);
+            }
+        }
+
+        private static int getVisibleCount(UUID playerId) {
+            return VISIBLE_COUNT.getOrDefault(playerId, 0);
         }
 
         public static void createBossBar(@NotNull Player p) {

@@ -11,6 +11,7 @@ import io.lumine.mythic.core.mobs.ActiveMob;
 import net.azisaba.lifenewpve.LifeNewPvE;
 import net.azisaba.lifenewpve.libs.CoolTime;
 import net.azisaba.lifenewpve.libs.Mana;
+import net.azisaba.lifenewpve.libs.event.ManaModifyEvent;
 import net.azisaba.lifenewpve.mythicmobs.*;
 import net.azisaba.lifenewpve.mythicmobs.conditons.ContainRegion;
 import net.azisaba.lifenewpve.mythicmobs.conditons.FromSurface;
@@ -271,7 +272,7 @@ public class MythicListener implements Listener {
         @EventHandler
         public void onDeath(@NotNull MythicMobDeathEvent e) {
             if (!(e.getKiller() instanceof Player p)) return;
-            Mana.modifyMana(p, 0.01);
+            Mana.modifyMana(p, 0.01, ManaModifyEvent.Type.MYTHIC_KILL);
         }
     }
 }

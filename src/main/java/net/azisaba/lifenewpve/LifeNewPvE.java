@@ -4,6 +4,8 @@ import com.onarandombox.MultiverseCore.MultiverseCore;
 import net.azisaba.lifenewpve.commands.*;
 import net.azisaba.lifenewpve.libs.Mana;
 import net.azisaba.lifenewpve.listeners.*;
+import net.azisaba.loreeditor.api.event.EventBus;
+import net.azisaba.loreeditor.api.event.ItemEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import org.bukkit.Bukkit;
@@ -14,9 +16,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public final class LifeNewPvE extends JavaPlugin implements Task {
 
@@ -33,7 +33,8 @@ public final class LifeNewPvE extends JavaPlugin implements Task {
         updatePointData();
         updateColors();
 
-        Bukkit.getOnlinePlayers().forEach(p -> new Mana(p).runTaskLaterAsynchronously(JavaPlugin.getPlugin(LifeNewPvE.class), 100));
+        Bukkit.getOnlinePlayers().forEach(p -> new Mana(p).runTaskTimer(JavaPlugin.getPlugin(LifeNewPvE.class), 200, 200));
+        registerLore();
     }
     @Override
     public void onDisable() {
@@ -77,6 +78,22 @@ public final class LifeNewPvE extends JavaPlugin implements Task {
         Objects.requireNonNull(getCommand("setspawn")).setExecutor(new SetSpawnCommand(this));
         Objects.requireNonNull(getCommand("savepoint")).setExecutor(new SavePointCommand(this));
         Objects.requireNonNull(getCommand("mode")).setExecutor(new ModeCommand());
+        Objects.requireNonNull(getCommand("setmana")).setExecutor(new SetManaCommand());
+    }
+
+    private static final String PREFIX_JP = "§7装備したとき：";
+    private static final String SUFFIX_JP = "§bマナ +V";
+
+    private void registerLore() {
+        EventBus.INSTANCE.register(this, ItemEvent.class, 0, e -> {
+            long mana = Mana.getLoreStack(e.getBukkitItem());
+            if (mana == -1) return;
+
+            String manaMessage = SUFFIX_JP.replace("V", String.valueOf(mana));
+            e.addLore(net.azisaba.loreeditor.libs.net.kyori.adventure.text.Component.text(""));
+            e.addLore(net.azisaba.loreeditor.libs.net.kyori.adventure.text.Component.text(PREFIX_JP));
+            e.addLore(net.azisaba.loreeditor.libs.net.kyori.adventure.text.Component.text(manaMessage));
+        });
     }
 
     @Override

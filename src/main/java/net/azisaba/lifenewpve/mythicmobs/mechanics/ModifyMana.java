@@ -8,6 +8,7 @@ import io.lumine.mythic.api.skills.SkillMetadata;
 import io.lumine.mythic.api.skills.SkillResult;
 import io.lumine.mythic.bukkit.BukkitAdapter;
 import net.azisaba.lifenewpve.libs.Mana;
+import net.azisaba.lifenewpve.libs.event.ManaModifyEvent;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,9 +32,9 @@ public class ModifyMana implements ISkillMechanic, ITargetedEntitySkill {
         if (!abstractEntity.isPlayer()) return SkillResult.INVALID_TARGET;
         Player player = BukkitAdapter.adapt(abstractEntity.asPlayer());
         if (multiple) {
-            Mana.modifyMana(player, multiply);
+            Mana.modifyMana(player, multiply, ManaModifyEvent.Type.CUSTOM);
         } else {
-            Mana.modifyMana(player, add);
+            Mana.modifyMana(player, add, ManaModifyEvent.Type.CUSTOM);
         }
         return SkillResult.SUCCESS;
     }

@@ -16,6 +16,7 @@ repositories {
     maven("https://mvn.lumine.io/repository/maven-public/")
     maven("https://repo.onarandombox.com/content/groups/public/")
     maven("https://maven.enginehub.org/repo/")
+    maven("https://repo.azisaba.net/repository/maven-public/")
 }
 
 dependencies {
@@ -23,6 +24,7 @@ dependencies {
     compileOnly("io.lumine:Mythic-Dist:5.7.2")
     compileOnly("com.onarandombox.multiversecore:multiverse-core:4.3.12")
     compileOnly("com.sk89q.worldguard:worldguard-bukkit:7.0.12")
+    compileOnly("net.azisaba.loreeditor:plugin:1.2.0:all")
     paperweight.paperDevBundle("1.21.1-R0.1-SNAPSHOT")
 }
 

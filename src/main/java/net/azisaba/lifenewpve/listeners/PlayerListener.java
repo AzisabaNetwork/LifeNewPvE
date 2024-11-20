@@ -15,6 +15,7 @@ import net.azisaba.lifenewpve.commands.ModeCommand;
 import net.azisaba.lifenewpve.libs.Mana;
 import net.azisaba.lifenewpve.libs.VectorTask;
 import net.azisaba.lifenewpve.commands.WorldTeleportCommand;
+import net.azisaba.lifenewpve.libs.event.ManaModifyEvent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
@@ -107,7 +108,7 @@ public class PlayerListener implements Listener {
             JavaPlugin.getPlugin(LifeNewPvE.class).runSyncDelayed(()-> {
 
                 ModeCommand.switchMode(p, false);
-                new Mana(p).runTaskLaterAsynchronously(JavaPlugin.getPlugin(LifeNewPvE.class), 100);
+                new Mana(p).runTaskTimerAsynchronously(JavaPlugin.getPlugin(LifeNewPvE.class), 200, 200);
             }, 40);
         }
     }
@@ -156,7 +157,7 @@ public class PlayerListener implements Listener {
 
             applyDamage(caster, calculateEnchantDamage(player, mainHandItem, event.getAttacked(), (float) damageAmount), mob.getEntity());
             event.setCancelled(true);
-            Mana.modifyMana(player, 0.05);
+            Mana.modifyMana(player, 0.05, ManaModifyEvent.Type.MELEE);
         }
 
         private double calculateEnchantDamage(Player player, ItemStack itemStack, Entity entity, float damageAmount) {
