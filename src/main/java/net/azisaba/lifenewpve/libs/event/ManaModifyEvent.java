@@ -20,11 +20,14 @@ public class ManaModifyEvent extends Event implements Cancellable {
 
     private final Type type;
 
-    public ManaModifyEvent(Player player, long before, long add, Type type) {
+    private final long max;
+
+    public ManaModifyEvent(Player player, long before, long add, Type type, long max) {
         this.player = player;
         this.before = before;
         this.add = add;
         this.type = type;
+        this.max = max;
     }
 
     public Player getPlayer() {
@@ -37,6 +40,10 @@ public class ManaModifyEvent extends Event implements Cancellable {
 
     public Type getType() {
         return type;
+    }
+
+    public long getMax() {
+        return max;
     }
 
     public long getAdd() {

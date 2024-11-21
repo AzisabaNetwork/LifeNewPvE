@@ -54,25 +54,22 @@ public class Mana extends BukkitRunnable {
         }
     }
 
+    private static void handleManaModification(@NotNull Player player, PersistentDataContainer pc, long set, ManaModifyEvent.Type type) {
+        JavaPlugin.getPlugin(LifeNewPvE.class).runSync(() -> {
+            ManaModifyEvent event = new ManaModifyEvent(player, getMana(pc), set, type, getMaxMana(player, pc));
+            if (!event.callEvent()) return;
+            setMana(event.getPlayer(), Math.min(event.getBefore() + event.getAdd(), event.getMax()));
+        });
+    }
+
     public static void modifyMana(@NotNull Player player, long add, ManaModifyEvent.Type type) {
         PersistentDataContainer pc = player.getPersistentDataContainer();
-        long set = Math.min(getMana(pc) + add, getMaxMana(player, pc));
-        JavaPlugin.getPlugin(LifeNewPvE.class).runSync(()-> {
-            ManaModifyEvent event = new ManaModifyEvent(player, getMana(pc), set - getMana(pc), type);
-            if (!event.callEvent()) return;
-            setMana(event.getPlayer(),event.getBefore() + event.getAdd());
-        });
+        handleManaModification(player, pc, add, type);
     }
 
     public static void modifyMana(@NotNull Player player, double multiple, ManaModifyEvent.Type type) {
         PersistentDataContainer pc = player.getPersistentDataContainer();
-        long set = Math.round(Math.min(multiple * getMaxMana(player, pc) + getMana(pc), getMaxMana(player, pc)));
-        JavaPlugin.getPlugin(LifeNewPvE.class).runSync(()-> {
-            ManaModifyEvent event = new ManaModifyEvent(player, getMana(pc), set - getMana(pc), type);
-            if (!event.callEvent()) return;
-            setMana(event.getPlayer(), event.getBefore() + event.getAdd());
-        });
-
+        handleManaModification(player, pc, Math.round(multiple * getMaxMana(player, pc)), type);
     }
 
     public static void setMana(@NotNull Player player, long set) {
