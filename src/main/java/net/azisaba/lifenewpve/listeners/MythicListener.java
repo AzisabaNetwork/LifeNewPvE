@@ -7,11 +7,10 @@ import io.lumine.mythic.api.adapters.AbstractPlayer;
 import io.lumine.mythic.bukkit.BukkitAdapter;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import io.lumine.mythic.bukkit.events.*;
+import io.lumine.mythic.core.items.MythicItem;
 import io.lumine.mythic.core.mobs.ActiveMob;
 import net.azisaba.lifenewpve.LifeNewPvE;
 import net.azisaba.lifenewpve.libs.CoolTime;
-import net.azisaba.lifenewpve.libs.Mana;
-import net.azisaba.lifenewpve.libs.event.ManaModifyEvent;
 import net.azisaba.lifenewpve.mythicmobs.*;
 import net.azisaba.lifenewpve.mythicmobs.conditons.ContainRegion;
 import net.azisaba.lifenewpve.mythicmobs.conditons.FromSurface;
@@ -23,14 +22,17 @@ import net.azisaba.lifenewpve.mythicmobs.mechanics.SetFallDistance;
 import net.azisaba.lifenewpve.packet.PacketHandler;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.minecraft.core.component.DataComponents;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
+import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -47,7 +49,7 @@ public class MythicListener implements Listener {
         pm.registerEvents(new MythicListener.Mechanics(), plugin);
         pm.registerEvents(new MythicListener.Damage(), plugin);
         pm.registerEvents(new MythicListener.Reload(), plugin);
-        pm.registerEvents(new MythicListener.Death(), plugin);
+        pm.registerEvents(new MythicListener.ItemGen(), plugin);
     }
 
     public static double damageMath(double damage, double a, double t) {
@@ -56,7 +58,7 @@ public class MythicListener implements Listener {
         if (armor < 0) {
             return damage * Math.pow(1.025, Math.abs(armor));
         } else {
-            damage *= Math.pow(0.9995, Math.abs(a));
+            damage *= Math.pow(0.9995, Math.abs(t));
         }
         double f = 1 + damage;
         double math = Math.max(damage / (armor + f) * f, 0);
@@ -127,6 +129,23 @@ public class MythicListener implements Listener {
                     // 未知の条件には何もしません
                     break;
             }
+        }
+    }
+
+    public static class ItemGen extends MythicListener {
+
+        @EventHandler
+        public void onGen(@NotNull MythicMobItemGenerateEvent event) {
+            MythicItem mi = event.getItem();
+            String g = mi.getGroup();
+            if (g == null) return;
+            if (!g.equals("Main-Weapon")) return;
+
+            ItemStack item = event.getItemStack();
+            if (item == null || !item.hasItemMeta()) return;
+            net.minecraft.world.item.ItemStack nms = CraftItemStack.asNMSCopy(item);
+            nms.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
+            event.setItemStack(CraftItemStack.asBukkitCopy(nms));
         }
     }
 
@@ -264,15 +283,6 @@ public class MythicListener implements Listener {
 
         private double getHealthPerPlayer(double n) {
             return n - 0.25 * (n - 1);
-        }
-    }
-
-    public static class Death extends MythicListener {
-
-        @EventHandler
-        public void onDeath(@NotNull MythicMobDeathEvent e) {
-            if (!(e.getKiller() instanceof Player p)) return;
-            Mana.modifyMana(p, 0.01, ManaModifyEvent.Type.MYTHIC_KILL);
         }
     }
 }

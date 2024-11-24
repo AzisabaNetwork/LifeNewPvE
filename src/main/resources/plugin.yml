@@ -33,15 +33,6 @@ commands:
       - wset
       - wse
       - wst
-  spawn:
-    permission: lifenewpve.command.spawn
-    aliases:
-      - sp
-  setspawn:
-    permission: lifenewpve.command.setspawn
-    aliases:
-      - ss
-      - setSpawn
   savepoint:
     permission: lifenewpve.command.savepoint
     aliases:

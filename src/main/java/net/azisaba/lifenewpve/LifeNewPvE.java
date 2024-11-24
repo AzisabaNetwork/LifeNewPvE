@@ -74,8 +74,6 @@ public final class LifeNewPvE extends JavaPlugin implements Task {
         Objects.requireNonNull(getCommand("worldset")).setExecutor(new WorldSetCommand());
         Objects.requireNonNull(getCommand("worldcreate")).setExecutor(new WorldCreateCommand(this));
         Objects.requireNonNull(getCommand("worldteleport")).setExecutor(new WorldTeleportCommand());
-        Objects.requireNonNull(getCommand("spawn")).setExecutor(new SpawnCommand(this));
-        Objects.requireNonNull(getCommand("setspawn")).setExecutor(new SetSpawnCommand(this));
         Objects.requireNonNull(getCommand("savepoint")).setExecutor(new SavePointCommand(this));
         Objects.requireNonNull(getCommand("mode")).setExecutor(new ModeCommand());
         Objects.requireNonNull(getCommand("setmana")).setExecutor(new SetManaCommand());

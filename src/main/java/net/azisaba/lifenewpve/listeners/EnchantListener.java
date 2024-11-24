@@ -4,6 +4,7 @@ import net.azisaba.lifenewpve.libs.attributes.AttributeBuilder;
 import net.azisaba.lifenewpve.LifeNewPvE;
 import org.bukkit.Bukkit;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -62,7 +63,7 @@ public class EnchantListener implements Listener {
             }
         }
 
-        @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+        @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
         public void onItem(@NotNull EnchantItemEvent event) {
             Map<Enchantment, Integer> enchantsToAdd = event.getEnchantsToAdd();
 
@@ -75,7 +76,11 @@ public class EnchantListener implements Listener {
                 meta.addEnchant(entry.getKey(), entry.getValue(), true);
             }
             item.setItemMeta(meta);
-            event.setItem(AttributeBuilder.getItemStack(item));
+            event.setItem(AttributeBuilder.getItemStack(item, event.getExpLevelCost()));
+            event.setExpLevelCost(0);
+
+            Player p = event.getEnchanter();
+            p.setExp(p.getExp() - getExp(event.getExpLevelCost()));
         }
 
         private boolean canUpgradeEnchantment(Enchantment enchantment) {
@@ -95,5 +100,15 @@ public class EnchantListener implements Listener {
             enchants.put(enchantment, currentLevel);
         }
 
+        private float getExp(int level) {
+            if (0 <= level && level <= 16) {
+                return  level * level + 6 * level;
+            } else if (16 < level && level <= 31) {
+                return 5F / 2F * level * level - 81F / 2F * level + 360;
+            } else if (31 < level) {
+               return  9F / 2F * level * level - 325F / 2F * level + 2220;
+            }
+            return 0;
+        }
     }
 }

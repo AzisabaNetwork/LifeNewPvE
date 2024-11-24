@@ -21,10 +21,15 @@ public class AttributeBuilder {
     private static final Random RANDOM = new Random();
     private static final Map<String, Attribute> ATTRIBUTE_MAP = initializeAttributeMap();
 
-    private static double getRandomValue(double max, int level) {
+    private static double getRandomValue(double max, int level, float chance) {
         NumberFormat numFormat = NumberFormat.getNumberInstance();
         numFormat.setMaximumFractionDigits(2);
-        return Double.parseDouble(numFormat.format(max / level * (RANDOM.nextInt(level) + 1)));
+
+        if (chance > RANDOM.nextInt(100)) {
+            return Double.parseDouble(numFormat.format(max / level * (RANDOM.nextFloat(level - (level * 0.7F)) + 1 + level * 0.7F)));
+        } else {
+            return Double.parseDouble(numFormat.format(max / level * (RANDOM.nextInt(level) + 1)));
+        }
     }
 
     protected record AttributeCreator(String key, double max, int level, AttributeModifier.Operation operation) {
@@ -38,40 +43,40 @@ public class AttributeBuilder {
                 new AttributeCreator("lifenewpve_attack_damage_scalar",0.1, 20, AttributeModifier.Operation.ADD_SCALAR),
                 new AttributeCreator("lifenewpve_movement_speed_scalar",0.1, 20, AttributeModifier.Operation.ADD_SCALAR),
                 new AttributeCreator("lifenewpve_armor_num",20, 20, AttributeModifier.Operation.ADD_NUMBER),
-                new AttributeCreator("lifenewpve_armor_scalar",0.5, 20, AttributeModifier.Operation.ADD_SCALAR),
+                new AttributeCreator("lifenewpve_armor_scalar",0.2, 20, AttributeModifier.Operation.ADD_SCALAR),
                 new AttributeCreator("lifenewpve_toughness_num",10, 20, AttributeModifier.Operation.ADD_NUMBER),
-                new AttributeCreator("lifenewpve_toughness_scalar",0.25, 20, AttributeModifier.Operation.ADD_SCALAR),
+                new AttributeCreator("lifenewpve_toughness_scalar",0.1, 20, AttributeModifier.Operation.ADD_SCALAR),
                 new AttributeCreator("lifenewpve_knockback_resistance_num",0.1, 20, AttributeModifier.Operation.ADD_NUMBER),
                 new AttributeCreator("lifenewpve_knockback_resistance_scalar",0.2, 20, AttributeModifier.Operation.ADD_SCALAR),
                 new AttributeCreator("lifenewpve_max_health_num", 10,20, AttributeModifier.Operation.ADD_NUMBER),
                 new AttributeCreator("lifenewpve_max_health_scalar",0.1, 20, AttributeModifier.Operation.ADD_SCALAR),
                 new AttributeCreator("lifenewpve_attack_knockback_num",5, 20, AttributeModifier.Operation.ADD_NUMBER),
-                new AttributeCreator("lifenewpve_attack_speed_scalar",0.5, 50, AttributeModifier.Operation.ADD_SCALAR),
-                new AttributeCreator("lifenewpve_fall_damage_multiplier_scalar",0.25, 25, AttributeModifier.Operation.ADD_SCALAR),
+                new AttributeCreator("lifenewpve_attack_speed_scalar",0.1, 50, AttributeModifier.Operation.ADD_SCALAR),
+                new AttributeCreator("lifenewpve_fall_damage_multiplier_scalar",-0.25, 25, AttributeModifier.Operation.ADD_SCALAR),
                 new AttributeCreator("lifenewpve_luck_num", 5,20, AttributeModifier.Operation.ADD_NUMBER),
                 new AttributeCreator("lifenewpve_safe_fall_distance_num",5, 20, AttributeModifier.Operation.ADD_NUMBER),
                 new AttributeCreator("lifenewpve_step_height_num",2, 20, AttributeModifier.Operation.ADD_NUMBER),
                 new AttributeCreator("lifenewpve_gravity_scalar",0.25, 25, AttributeModifier.Operation.ADD_SCALAR),
-                new AttributeCreator("lifenewpve_jump_strength_scalar",0.5, 50, AttributeModifier.Operation.ADD_SCALAR),
-                new AttributeCreator("lifenewpve_jump_strength_num",2, 50, AttributeModifier.Operation.ADD_NUMBER),
-                new AttributeCreator("lifenewpve_burning_time_scalar",0.25 , 25, AttributeModifier.Operation.ADD_SCALAR),
+                new AttributeCreator("lifenewpve_jump_strength_scalar",0.25, 50, AttributeModifier.Operation.ADD_SCALAR),
+                new AttributeCreator("lifenewpve_jump_strength_num",0.2, 50, AttributeModifier.Operation.ADD_NUMBER),
+                new AttributeCreator("lifenewpve_burning_time_scalar",-0.25 , 25, AttributeModifier.Operation.ADD_SCALAR),
                 new AttributeCreator("lifenewpve_explosion_knockback_resistance_scalar",0.5 , 25, AttributeModifier.Operation.ADD_SCALAR),
                 new AttributeCreator("lifenewpve_movement_efficiency_scalar",0.1 ,10, AttributeModifier.Operation.ADD_SCALAR),
-                new AttributeCreator("lifenewpve_oxygen_bonus_scalar",0.25 ,25,AttributeModifier.Operation.ADD_SCALAR),
+                new AttributeCreator("lifenewpve_oxygen_bonus_scalar",0.5 ,25,AttributeModifier.Operation.ADD_SCALAR),
                 new AttributeCreator("lifenewpve_water_movement_efficiency_scalar",0.15 ,15, AttributeModifier.Operation.ADD_SCALAR),
                 new AttributeCreator("lifenewpve_block_interaction_range_num",1,5, AttributeModifier.Operation.ADD_NUMBER),
                 new AttributeCreator("lifenewpve_entity_interaction_range_num",1,5, AttributeModifier.Operation.ADD_NUMBER),
                 new AttributeCreator("lifenewpve_block_break_speed_num",5,10, AttributeModifier.Operation.ADD_NUMBER),
                 new AttributeCreator("lifenewpve_mining_efficiency_num", 5 ,10, AttributeModifier.Operation.ADD_NUMBER),
-                new AttributeCreator("lifenewpve_mining_efficiency_scalar",0.1 ,20, AttributeModifier.Operation.ADD_SCALAR),
-                new AttributeCreator("lifenewpve_sneaking_speed_scalar",0.5,10, AttributeModifier.Operation.ADD_SCALAR),
-                new AttributeCreator("lifenewpve_submerged_mining_speed_scalar",0.25 ,25, AttributeModifier.Operation.ADD_SCALAR),
-                new AttributeCreator("lifenewpve_sweeping_damage_ratio_scalar",0.5 ,10, AttributeModifier.Operation.ADD_SCALAR),
+                new AttributeCreator("lifenewpve_mining_efficiency_scalar",0.02 ,20, AttributeModifier.Operation.ADD_SCALAR),
+                new AttributeCreator("lifenewpve_sneaking_speed_scalar",0.02,10, AttributeModifier.Operation.ADD_SCALAR),
+                new AttributeCreator("lifenewpve_submerged_mining_speed_scalar",0.005 ,25, AttributeModifier.Operation.ADD_SCALAR),
+                new AttributeCreator("lifenewpve_sweeping_damage_ratio_scalar",0.2 ,10, AttributeModifier.Operation.ADD_SCALAR),
         };
     }
 
     @NotNull
-    private static Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlotGroup group) {
+    private static Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlotGroup group, float chance) {
         AttributeCreator[] creators = getAttributeCreators();
         Multimap<Attribute, AttributeModifier> modifierMultimap = ArrayListMultimap.create();
 
@@ -79,17 +84,17 @@ public class AttributeBuilder {
             String keyLowerCase = creator.key.toLowerCase();
             ATTRIBUTE_MAP.forEach((key, attribute) -> {
                 if (keyLowerCase.contains(key)) {
-                    addModifier(modifierMultimap, attribute, creator, group);
+                    addModifier(modifierMultimap, attribute, creator, group, chance);
                 }
             });
         }
         return modifierMultimap;
     }
 
-    private static void addModifier(@NotNull Multimap<Attribute, AttributeModifier> modifierMultimap, Attribute attribute, @NotNull AttributeCreator creator, EquipmentSlotGroup group) {
+    private static void addModifier(@NotNull Multimap<Attribute, AttributeModifier> modifierMultimap, Attribute attribute, @NotNull AttributeCreator creator, EquipmentSlotGroup group, float chance) {
         modifierMultimap.put(attribute, new AttributeModifier(
                 getKey(creator.key),
-                getRandomValue(creator.max(), creator.level()),
+                getRandomValue(creator.max(), creator.level(), chance),
                 creator.operation(),
                 group
         ));
@@ -101,16 +106,16 @@ public class AttributeBuilder {
         return new NamespacedKey(JavaPlugin.getPlugin(LifeNewPvE.class), key.toLowerCase());
     }
 
-    public static ItemStack getItemStack(ItemStack item) {
+    public static ItemStack getItemStack(ItemStack item, int expLevelCost) {
         if (item == null) return null;
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return item;
 
         removeModifiers(meta);
         EquipmentSlotGroup group = determineEquipmentSlotGroup(item.getType().toString().toLowerCase());
-        Multimap<Attribute, AttributeModifier> modifiers = getAttributeModifiers(group);
+        Multimap<Attribute, AttributeModifier> modifiers = getAttributeModifiers(group, getGradeUpChance(expLevelCost));
 
-        applyRandomModifiers(meta, modifiers);
+        applyRandomModifiers(meta, modifiers, expLevelCost);
 
         item.setItemMeta(meta);
         return item;
@@ -173,8 +178,13 @@ public class AttributeBuilder {
         }
     }
 
-    private static void applyRandomModifiers(ItemMeta meta, @NotNull Multimap<Attribute, AttributeModifier> modifiers) {
-        int loopCount = determineLoopCount();
+    private static void applyRandomModifiers(ItemMeta meta, @NotNull Multimap<Attribute, AttributeModifier> modifiers, int level) {
+        float f = getChance(level);
+        int loopCount = (int) Math.min(f / 100, 5);
+        float l = f % 100;
+        if (l > RANDOM.nextInt(100)) {
+            loopCount++;
+        }
 
         List<Attribute> attributes = new ArrayList<>(modifiers.keySet());
         for (int i = 0; i < loopCount; i++) {
@@ -186,18 +196,11 @@ public class AttributeBuilder {
         }
     }
 
-    private static int determineLoopCount() {
-        int randomValue = RANDOM.nextInt(100) + 1;
-        if (randomValue < 60) {
-            return 1;
-        } else if (randomValue < 85) {
-            return 2;
-        } else if (randomValue < 95) {
-            return 3;
-        } else if (randomValue < 99) {
-            return 4;
-        } else {
-            return 5;
-        }
+    private static int getChance(int level) {
+        return ((level - 1) * 15 + 65);
+    }
+
+    private static float getGradeUpChance(int level) {
+        return (level - 1) * 0.5F + 15F;
     }
 }

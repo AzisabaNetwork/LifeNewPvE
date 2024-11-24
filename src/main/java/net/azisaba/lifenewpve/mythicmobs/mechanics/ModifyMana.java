@@ -14,15 +14,23 @@ import org.jetbrains.annotations.NotNull;
 
 public class ModifyMana implements ISkillMechanic, ITargetedEntitySkill {
 
-    private final long add;
+    private long add;
 
-    private final double multiply;
+    private double multiply;
 
     private final boolean multiple;
 
     public ModifyMana(@NotNull MythicLineConfig config) {
-        this.multiply = Double.parseDouble(config.getPlaceholderString(new String[]{"a", "amount"}, "0.01").get());
-        this.add = Long.parseLong(config.getPlaceholderString(new String[]{"a", "amount"}, "1").get());
+        try {
+            this.add = Long.parseLong(config.getPlaceholderString(new String[]{"a", "amount"}, "1").get());
+        } catch (NumberFormatException e) {
+            this.add = 1;
+        }
+        try {
+            this.multiply = Double.parseDouble(config.getPlaceholderString(new String[]{"a", "amount"}, "0.01").get());
+        } catch (NumberFormatException e) {
+            this.multiply = 0.01;
+        }
         this.multiple = config.getBoolean(new String[]{"m", "multiple"}, false);
     }
 

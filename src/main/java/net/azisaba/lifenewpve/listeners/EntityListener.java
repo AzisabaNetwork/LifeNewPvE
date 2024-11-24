@@ -4,7 +4,9 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import net.azisaba.lifenewpve.LifeNewPvE;
 import net.azisaba.lifenewpve.libs.CoolTime;
+import net.azisaba.lifenewpve.libs.Mana;
 import net.azisaba.lifenewpve.libs.VectorTask;
+import net.azisaba.lifenewpve.libs.event.ManaModifyEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Entity;
@@ -63,11 +65,13 @@ public class EntityListener implements Listener {
             }
             if (event.getRegainReason() == EntityRegainHealthEvent.RegainReason.SATIATED) {
                 adjustEventAmount(event, playerHealth, playerId);
+                Mana.modifyMana(p, 0.05, ManaModifyEvent.Type.EATING);
                 return;
             }
             if (event.getRegainReason() != EntityRegainHealthEvent.RegainReason.EATING) return;
             if (CoolTime.isCoolTime(getClass(), playerId, multimap)) {
                 applyCooldownAndAdjustAmount(event, playerHealth, playerId);
+                Mana.modifyMana(p, 0.2, ManaModifyEvent.Type.EATING);
             }
         }
 

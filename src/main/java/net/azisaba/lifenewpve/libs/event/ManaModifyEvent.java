@@ -75,6 +75,6 @@ public class ManaModifyEvent extends Event implements Cancellable {
     }
 
     public enum Type {
-        AUTO_REGEN, MELEE, MYTHIC_KILL, CUSTOM
+        AUTO_REGEN, MELEE, MYTHIC_KILL, CUSTOM, EATING
     }
 }
