@@ -18,17 +18,16 @@ import java.util.*;
 
 public class AttributeBuilder {
 
-    private static final Random RANDOM = new Random();
     private static final Map<String, Attribute> ATTRIBUTE_MAP = initializeAttributeMap();
 
     private static double getRandomValue(double max, int level, float chance) {
         NumberFormat numFormat = NumberFormat.getNumberInstance();
         numFormat.setMaximumFractionDigits(2);
 
-        if (chance > RANDOM.nextInt(100)) {
-            return Double.parseDouble(numFormat.format(max / level * (RANDOM.nextFloat(level - (level * 0.7F)) + 1 + level * 0.7F)));
+        if (chance > LifeNewPvE.RANDOM.nextInt(100)) {
+            return Double.parseDouble(numFormat.format(max / level * (LifeNewPvE.RANDOM.nextFloat(level - (level * 0.7F)) + 1 + level * 0.7F)));
         } else {
-            return Double.parseDouble(numFormat.format(max / level * (RANDOM.nextInt(level) + 1)));
+            return Double.parseDouble(numFormat.format(max / level * (LifeNewPvE.RANDOM.nextInt(level) + 1)));
         }
     }
 
@@ -182,16 +181,16 @@ public class AttributeBuilder {
         float f = getChance(level);
         int loopCount = (int) Math.min(f / 100, 5);
         float l = f % 100;
-        if (l > RANDOM.nextInt(100)) {
+        if (l > LifeNewPvE.RANDOM.nextInt(100)) {
             loopCount++;
         }
 
         List<Attribute> attributes = new ArrayList<>(modifiers.keySet());
         for (int i = 0; i < loopCount; i++) {
-            int randomAttrIndex = RANDOM.nextInt(attributes.size());
+            int randomAttrIndex = LifeNewPvE.RANDOM.nextInt(attributes.size());
             Attribute attribute = attributes.get(randomAttrIndex);
             List<AttributeModifier> modifierList = new ArrayList<>(modifiers.get(attribute));
-            int randomModIndex = RANDOM.nextInt(modifierList.size());
+            int randomModIndex = LifeNewPvE.RANDOM.nextInt(modifierList.size());
             meta.addAttributeModifier(attribute, modifierList.get(randomModIndex));
         }
     }

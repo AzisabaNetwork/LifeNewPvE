@@ -7,7 +7,7 @@ import io.lumine.mythic.api.skills.conditions.IEntityCondition;
 import io.lumine.mythic.api.skills.conditions.ISkillCondition;
 import io.lumine.mythic.bukkit.BukkitAdapter;
 import io.lumine.mythic.bukkit.utils.numbers.RangedLong;
-import net.azisaba.lifenewpve.libs.Mana;
+import net.azisaba.lifenewpve.libs.mana.Mana;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 

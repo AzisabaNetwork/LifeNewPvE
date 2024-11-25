@@ -12,7 +12,7 @@ import io.lumine.mythic.core.mobs.ActiveMob;
 import io.papermc.paper.event.player.PrePlayerAttackEntityEvent;
 import net.azisaba.lifenewpve.LifeNewPvE;
 import net.azisaba.lifenewpve.commands.ModeCommand;
-import net.azisaba.lifenewpve.libs.Mana;
+import net.azisaba.lifenewpve.libs.mana.Mana;
 import net.azisaba.lifenewpve.libs.VectorTask;
 import net.azisaba.lifenewpve.commands.WorldTeleportCommand;
 import net.minecraft.server.level.ServerLevel;

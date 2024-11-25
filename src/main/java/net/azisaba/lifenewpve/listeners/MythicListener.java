@@ -11,6 +11,8 @@ import io.lumine.mythic.core.items.MythicItem;
 import io.lumine.mythic.core.mobs.ActiveMob;
 import net.azisaba.lifenewpve.LifeNewPvE;
 import net.azisaba.lifenewpve.libs.CoolTime;
+import net.azisaba.lifenewpve.libs.event.ManaModifyEvent;
+import net.azisaba.lifenewpve.libs.mana.Mana;
 import net.azisaba.lifenewpve.mythicmobs.*;
 import net.azisaba.lifenewpve.mythicmobs.conditons.ContainRegion;
 import net.azisaba.lifenewpve.mythicmobs.conditons.FromSurface;
@@ -28,6 +30,7 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -50,6 +53,7 @@ public class MythicListener implements Listener {
         pm.registerEvents(new MythicListener.Damage(), plugin);
         pm.registerEvents(new MythicListener.Reload(), plugin);
         pm.registerEvents(new MythicListener.ItemGen(), plugin);
+        pm.registerEvents(new MythicListener.Death(), plugin);
     }
 
     public static double damageMath(double damage, double a, double t) {
@@ -283,6 +287,19 @@ public class MythicListener implements Listener {
 
         private double getHealthPerPlayer(double n) {
             return n - 0.25 * (n - 1);
+        }
+    }
+
+    public static class Death extends MythicListener {
+
+        @EventHandler
+        public void onDeath(@NotNull MythicMobDeathEvent e) {
+            if (!(e.getKiller() instanceof Player p)) return;
+            if (e.getEntity() instanceof Player) return;
+            if (!(e.getEntity() instanceof LivingEntity)) return;
+            if (LifeNewPvE.RANDOM.nextInt(100) + 1 > 10) return;
+
+            Mana.modifyMana(p, Mana.getManaSteal(p), ManaModifyEvent.Type.MYTHIC_KILL);
         }
     }
 }

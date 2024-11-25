@@ -1,8 +1,10 @@
-package net.azisaba.lifenewpve.libs;
+package net.azisaba.lifenewpve.libs.mana;
 
 import net.azisaba.lifenewpve.LifeNewPvE;
+import net.azisaba.lifenewpve.libs.enchantments.LifeEnchantment;
 import net.azisaba.lifenewpve.libs.event.ManaModifyEvent;
 import org.bukkit.NamespacedKey;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -11,6 +13,9 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicReference;
 
 @SuppressWarnings("ConstantValue")
 public class Mana extends BukkitRunnable {
@@ -21,13 +26,35 @@ public class Mana extends BukkitRunnable {
         this.player = player;
     }
 
+    private static final double DEFAULT_MANA_REGEN = 0.05;
+
     @Override
     public void run() {
         if (player == null || !player.isOnline()) {
             stop();
         } else {
-            modifyMana(player,0.05, ManaModifyEvent.Type.AUTO_REGEN);
+            modifyMana(player, getManaRegen(player), ManaModifyEvent.Type.AUTO_REGEN);
         }
+    }
+
+    private double getManaRegen(@NotNull Player p) {
+        AtomicReference<Double> refinement = new AtomicReference<>(1D);
+        Arrays.stream(p.getInventory().getArmorContents()).filter(i -> {
+            Enchantment get = LifeEnchantment.MANA_REGEN;
+            return  (i != null && i.hasItemMeta() && get != null && i.getItemMeta().hasEnchant(get));
+        }).forEach(i -> refinement.updateAndGet(v -> v +  i.getEnchantmentLevel(LifeEnchantment.MANA_REGEN) * 0.1));
+
+        return DEFAULT_MANA_REGEN * refinement.get();
+    }
+
+    @SuppressWarnings("unused")
+    public double getDefaultManaRegen() {
+        return DEFAULT_MANA_REGEN;
+    }
+
+    @SuppressWarnings("unused")
+    public double getManaRegen() {
+        return getManaRegen(player);
     }
 
     public void stop() {
@@ -55,11 +82,26 @@ public class Mana extends BukkitRunnable {
     }
 
     private static void handleManaModification(@NotNull Player player, PersistentDataContainer pc, long set, ManaModifyEvent.Type type) {
+        long modified = Math.round(getManaRefinement(player, set));
         JavaPlugin.getPlugin(LifeNewPvE.class).runSync(() -> {
-            ManaModifyEvent event = new ManaModifyEvent(player, getMana(pc), set, type, getMaxMana(player, pc));
+            ManaModifyEvent event = new ManaModifyEvent(player, getMana(pc), modified, type, getMaxMana(player, pc));
             if (!event.callEvent()) return;
             setMana(event.getPlayer(), Math.min(event.getBefore() + event.getAdd(), event.getMax()));
         });
+    }
+
+    private static double getManaRefinement(@NotNull Player p, long modify) {
+        AtomicReference<Double> refinement = new AtomicReference<>(1D);
+        Arrays.stream(p.getInventory().getArmorContents()).filter(i -> {
+            Enchantment get = LifeEnchantment.MANA_REFINEMENT;
+            return  (i != null && i.hasItemMeta() && get != null && i.getItemMeta().hasEnchant(get));
+        }).forEach(i -> refinement.updateAndGet(v -> v +  i.getEnchantmentLevel(LifeEnchantment.MANA_REFINEMENT) * 0.05));
+
+        if (modify < 0) {
+            return modify / refinement.get();
+        } else {
+            return modify * refinement.get();
+        }
     }
 
     public static void modifyMana(@NotNull Player player, long add, ManaModifyEvent.Type type) {
@@ -96,24 +138,34 @@ public class Mana extends BukkitRunnable {
     }
 
     private static long getItemMana(ItemStack item) {
-        if (item == null || !item.hasItemMeta()) return 0;
-        if (item.hasItemMeta()) {
-            String mana = item.getItemMeta().getPersistentDataContainer()
-                    .get(new NamespacedKey(JavaPlugin.getPlugin(LifeNewPvE.class), "max_mana"), PersistentDataType.STRING);
-            if (mana == null) return 0;
-            return Long.parseLong(mana);
-        }
-        return 0;
+        return getManaFromItemMeta(item);
     }
 
     public static long getLoreStack(ItemStack item) {
-        if (item == null || !item.hasItemMeta()) return -1;
-        if (item.hasItemMeta()) {
-            String mana = item.getItemMeta().getPersistentDataContainer()
-                    .get(new NamespacedKey(JavaPlugin.getPlugin(LifeNewPvE.class), "max_mana"), PersistentDataType.STRING);
-            if (mana == null) return -1;
-            return Long.parseLong(mana);
+        long mana = getManaFromItemMeta(item);
+        return mana > 0 ? mana : -1;
+    }
+
+    private static long getManaFromItemMeta(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return 0;
+        long mana = 0;
+        String manaS = item.getItemMeta().getPersistentDataContainer()
+                .get(new NamespacedKey("minecraft", "max_mana"), PersistentDataType.STRING);
+        if (manaS != null) {
+            mana = Long.parseLong(manaS);
         }
-        return -1;
+        Enchantment manaBooster = LifeEnchantment.MANA_BOOSTER;
+        if (manaBooster != null && item.getItemMeta().hasEnchant(manaBooster)) {
+            mana += item.getItemMeta().getEnchantLevel(manaBooster) * 50L;
+        }
+        return mana;
+    }
+
+    public static double getManaSteal(@NotNull Player p) {
+        ItemStack i = p.getInventory().getItemInMainHand();
+        if (i != null && i.hasItemMeta() && LifeEnchantment.MANA_STEAL != null && i.getItemMeta().hasEnchant(LifeEnchantment.MANA_STEAL)) {
+            return i.getItemMeta().getEnchantLevel(LifeEnchantment.MANA_STEAL) * 0.05;
+        }
+        return 0;
     }
 }

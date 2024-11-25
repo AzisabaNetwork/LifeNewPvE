@@ -7,7 +7,7 @@ import io.lumine.mythic.api.skills.ITargetedEntitySkill;
 import io.lumine.mythic.api.skills.SkillMetadata;
 import io.lumine.mythic.api.skills.SkillResult;
 import io.lumine.mythic.bukkit.BukkitAdapter;
-import net.azisaba.lifenewpve.libs.Mana;
+import net.azisaba.lifenewpve.libs.mana.Mana;
 import net.azisaba.lifenewpve.libs.event.ManaModifyEvent;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;

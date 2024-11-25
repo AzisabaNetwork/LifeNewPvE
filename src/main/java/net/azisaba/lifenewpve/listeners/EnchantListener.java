@@ -1,10 +1,9 @@
 package net.azisaba.lifenewpve.listeners;
 
-import net.azisaba.lifenewpve.libs.attributes.AttributeBuilder;
 import net.azisaba.lifenewpve.LifeNewPvE;
+import net.azisaba.lifenewpve.libs.enchantments.LifeEnchantment;
 import org.bukkit.Bukkit;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -34,15 +33,15 @@ public class EnchantListener implements Listener {
         @Contract(" -> new")
         private static Object[][] getEnchantmentUpGrades() {
             return new Object[][]{
-                    {Enchantment.SHARPNESS, new EnchantmentUpgrade(20, 0.75)},
-                    {Enchantment.UNBREAKING, new EnchantmentUpgrade(10, 0.6)},
-                    {Enchantment.SMITE, new EnchantmentUpgrade(10, 0.5)},
+                    {Enchantment.SHARPNESS, new EnchantmentUpgrade(20, 0.8)},
+                    {Enchantment.UNBREAKING, new EnchantmentUpgrade(10, 0.7)},
+                    {Enchantment.SMITE, new EnchantmentUpgrade(10, 0.6)},
                     {Enchantment.SWEEPING_EDGE, new EnchantmentUpgrade(5, 0.5)},
                     {Enchantment.POWER, new EnchantmentUpgrade(10, 0.5)},
                     {Enchantment.IMPALING, new EnchantmentUpgrade(10, 0.5)},
                     {Enchantment.RESPIRATION, new EnchantmentUpgrade(5, 0.4)},
                     {Enchantment.LOOTING, new EnchantmentUpgrade(5, 0.4)},
-                    {Enchantment.BANE_OF_ARTHROPODS, new EnchantmentUpgrade(10, 0.5)},
+                    {Enchantment.BANE_OF_ARTHROPODS, new EnchantmentUpgrade(10, 0.6)},
                     {Enchantment.LURE, new EnchantmentUpgrade(5, 0.4)},
                     {Enchantment.EFFICIENCY, new EnchantmentUpgrade(5, 0.4)},
                     {Enchantment.LUCK_OF_THE_SEA, new EnchantmentUpgrade(5, 0.4)},
@@ -51,7 +50,7 @@ public class EnchantListener implements Listener {
                     {Enchantment.RIPTIDE, new EnchantmentUpgrade(5, 0.4)},
                     {Enchantment.FIRE_ASPECT, new EnchantmentUpgrade(5, 0.4)},
                     {Enchantment.KNOCKBACK, new EnchantmentUpgrade(5, 0.4)},
-                    {Enchantment.FLAME, new EnchantmentUpgrade(5, 0.4)}
+                    {Enchantment.FLAME, new EnchantmentUpgrade(5, 0.4)},
             };
         }
 
@@ -75,12 +74,8 @@ public class EnchantListener implements Listener {
             for (Map.Entry<Enchantment, Integer> entry : enchantsToAdd.entrySet()) {
                 meta.addEnchant(entry.getKey(), entry.getValue(), true);
             }
+            setCustomEnchantment(meta);
             item.setItemMeta(meta);
-            event.setItem(AttributeBuilder.getItemStack(item, event.getExpLevelCost()));
-            event.setExpLevelCost(0);
-
-            Player p = event.getEnchanter();
-            p.setExp(p.getExp() - getExp(event.getExpLevelCost()));
         }
 
         private boolean canUpgradeEnchantment(Enchantment enchantment) {
@@ -100,15 +95,35 @@ public class EnchantListener implements Listener {
             enchants.put(enchantment, currentLevel);
         }
 
-        private float getExp(int level) {
-            if (0 <= level && level <= 16) {
-                return  level * level + 6 * level;
-            } else if (16 < level && level <= 31) {
-                return 5F / 2F * level * level - 81F / 2F * level + 360;
-            } else if (31 < level) {
-               return  9F / 2F * level * level - 325F / 2F * level + 2220;
+        private void setCustomEnchantment(ItemMeta meta) {
+
+            int[][] chances = {
+                    {75, 50, 30},
+                    {85, 65, 40, 15, 3},
+                    {30, 15, 5},
+                    {30, 15, 5}
+            };
+
+            for (int i = 0; i < LifeEnchantment.getCustomEnchantments().size(); i++) {
+                Enchantment enchantment = new ArrayList<>(LifeEnchantment.getCustomEnchantments()).get(i);
+                if (enchantment != null) {
+                    int level = calculateEnchantmentLevel(chances[i]);
+                    if (level > 0) {
+                        meta.addEnchant(enchantment, level, false);
+                    }
+                }
             }
-            return 0;
+        }
+
+        private int calculateEnchantmentLevel(@NotNull int[] thresholds) {
+            int level = 0;
+            int chance = LifeNewPvE.RANDOM.nextInt(100);
+            for (int threshold : thresholds) {
+                if (chance < threshold) {
+                    level++;
+                }
+            }
+            return level;
         }
     }
 }

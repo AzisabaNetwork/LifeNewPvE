@@ -2,7 +2,7 @@ package net.azisaba.lifenewpve;
 
 import com.onarandombox.MultiverseCore.MultiverseCore;
 import net.azisaba.lifenewpve.commands.*;
-import net.azisaba.lifenewpve.libs.Mana;
+import net.azisaba.lifenewpve.libs.mana.Mana;
 import net.azisaba.lifenewpve.listeners.*;
 import net.azisaba.loreeditor.api.event.EventBus;
 import net.azisaba.loreeditor.api.event.ItemEvent;
@@ -21,6 +21,8 @@ import java.util.*;
 public final class LifeNewPvE extends JavaPlugin implements Task {
 
     private static final Map<String, String> COLORS = new HashMap<>();
+
+    public static final Random RANDOM = new Random();
 
     @Override
     public void onEnable() {

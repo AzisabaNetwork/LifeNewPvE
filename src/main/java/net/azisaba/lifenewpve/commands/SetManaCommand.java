@@ -1,6 +1,6 @@
 package net.azisaba.lifenewpve.commands;
 
-import net.azisaba.lifenewpve.libs.Mana;
+import net.azisaba.lifenewpve.libs.mana.Mana;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
