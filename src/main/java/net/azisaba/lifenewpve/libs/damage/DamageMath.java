@@ -18,7 +18,7 @@ public class DamageMath {
 
     private static final long defence_amount_per_add = 5;
 
-    private static final double damage_multiplier = 1.05;
+    private static final double damage_multiplier = 0.05;
 
     @SuppressWarnings("unused")
     public double getPlayerDefence() {
@@ -47,8 +47,8 @@ public class DamageMath {
         if (!victim.isPlayer()) {
             return calculate(damage, a, t, 0);
         } else {
-            Player atk = BukkitAdapter.adapt(victim.asPlayer());
-            double offset = player_defence + getProtection(atk);
+            Player dmg = BukkitAdapter.adapt(victim.asPlayer());
+            double offset = player_defence + getProtection(dmg);
             return calculate(damage, a, t, offset);
         }
     }
@@ -69,7 +69,7 @@ public class DamageMath {
     protected static double getProtection(@NotNull Player p) {
        double protection = 0;
        for (ItemStack i : getItemInventory(p)) {
-           protection += getEnchantmentInSlot(i, LifeEnchantment.ALL_DEFENCE, defence_amount_per_add);
+           protection += getEnchantmentInSlot(i, LifeEnchantment.ALL_DEFENCE, defence_amount_per_add, 0);
        }
        return protection;
     }
@@ -77,7 +77,7 @@ public class DamageMath {
     protected static double getElementDamage(@NotNull Player p) {
         double element = 1;
         for (ItemStack i : getItemInventory(p)) {
-            element *= getEnchantmentInSlot(i, LifeEnchantment.ALL_ELEMENT_DAMAGE, damage_multiplier);
+            element *= getEnchantmentInSlot(i, LifeEnchantment.ALL_ELEMENT_DAMAGE, damage_multiplier, 1);
         }
         return element;
     }
@@ -85,7 +85,7 @@ public class DamageMath {
     protected static double getAllDamage(@NotNull Player p) {
         double all = 1;
         for (ItemStack i : getItemInventory(p)) {
-            all *= getEnchantmentInSlot(i, LifeEnchantment.ALL_DAMAGE, damage_multiplier);
+            all *= getEnchantmentInSlot(i, LifeEnchantment.ALL_DAMAGE, damage_multiplier, 1);
         }
         return all;
     }
@@ -97,8 +97,8 @@ public class DamageMath {
         return set;
     }
 
-    protected static double getEnchantmentInSlot(ItemStack i, Enchantment select, double multiplier) {
-        if (i == null || !i.hasItemMeta() || select == null || !i.getItemMeta().hasEnchant(select)) return 0;
-        return i.getItemMeta().getEnchantLevel(select) * multiplier;
+    protected static double getEnchantmentInSlot(ItemStack i, Enchantment select, double multiplier, int result) {
+        if (i == null || !i.hasItemMeta() || select == null || !i.getItemMeta().hasEnchant(select)) return result;
+        return (i.getItemMeta().getEnchantLevel(select) * multiplier) + result;
     }
 }

@@ -74,7 +74,7 @@ public class EnchantListener implements Listener {
             for (Map.Entry<Enchantment, Integer> entry : enchantsToAdd.entrySet()) {
                 meta.addEnchant(entry.getKey(), entry.getValue(), true);
             }
-            setCustomEnchantment(meta);
+            setCustomEnchantment(meta, item);
             item.setItemMeta(meta);
         }
 
@@ -95,35 +95,56 @@ public class EnchantListener implements Listener {
             enchants.put(enchantment, currentLevel);
         }
 
-        private void setCustomEnchantment(ItemMeta meta) {
-
-            int[][] chances = {
-                    {75, 50, 30},
-                    {85, 65, 40, 15, 3},
-                    {30, 15, 5},
-                    {30, 15, 5}
-            };
-
-            for (int i = 0; i < LifeEnchantment.getCustomEnchantments().size(); i++) {
-                Enchantment enchantment = new ArrayList<>(LifeEnchantment.getCustomEnchantments()).get(i);
-                if (enchantment != null) {
-                    int level = calculateEnchantmentLevel(chances[i]);
-                    if (level > 0) {
-                        meta.addEnchant(enchantment, level, false);
-                    }
-                }
+        private void setCustomEnchantment(ItemMeta meta, ItemStack item) {
+            int repeatSelection = getRandomSelection();
+            Map<Enchantment, Integer> enchants = new HashMap<>();
+            for (int i = 0; i < repeatSelection; i++) {
+                Enchantment enchantment = getRandomEnchantment();
+                enchants.merge(enchantment, chanceEnchantmentAndGetLevel(enchantment), Integer::sum);
+            }
+            for (Map.Entry<Enchantment, Integer> entry : enchants.entrySet()) {
+                if (!entry.getKey().canEnchantItem(item)) continue;
+                if (entry.getValue() <= 0) continue;
+                meta.addEnchant(entry.getKey(), entry.getValue(), false);
             }
         }
 
-        private int calculateEnchantmentLevel(@NotNull int[] thresholds) {
-            int level = 0;
-            int chance = LifeNewPvE.RANDOM.nextInt(100);
-            for (int threshold : thresholds) {
-                if (chance < threshold) {
-                    level++;
+        private int getRandomSelection() {
+            int min = 1;
+            int max = 8;
+            int repeatSelection = 1;
+            double base = 0.75;
+            double randomSelection = Math.random();
+            for (int i = 0; i < LifeEnchantment.getCustomEnchantments().size(); i++) {
+                if (Math.pow(base, i) < randomSelection) {
+                    repeatSelection++;
                 }
             }
-            return level;
+            return Math.max(min, Math.min(max, repeatSelection));
+        }
+
+        private Enchantment getRandomEnchantment() {
+            return new ArrayList<>(LifeEnchantment.getCustomEnchantmentWithWeight())
+                    .get(LifeNewPvE.RANDOM.nextInt(LifeEnchantment.getCustomEnchantmentWithWeight().size()));
+        }
+
+        private int chanceEnchantmentAndGetLevel(Enchantment enchantment) {
+            int result = -1;
+            double chance = LifeEnchantment.getCustomEnchantmentChanceMap().get(enchantment);
+            int boarder = LifeNewPvE.RANDOM.nextInt(100) + 1;
+            while (boarder <= chance) {
+                if (result == -1) {
+                    result = 1;
+                } else {
+                    result++;
+                }
+                chance*= getRandomChance() + 0.3;
+            }
+            return result;
+        }
+
+        private double getRandomChance() {
+            return (LifeNewPvE.RANDOM.nextDouble(20) + 1) / 100;
         }
     }
 }
