@@ -122,7 +122,7 @@ public final class LifeNewPvE extends JavaPlugin implements Task {
            runSyncDelayed(()-> {
                World w = core.getMVWorldManager().getMVWorld(name).getCBWorld();
                if (w == null) return;
-               MultiverseListener.settings(w, dif);
+               MultiverseWorldDeleteListener.configureWorldSettings(w, dif);
 
                if (MythicListener.isMythic()) {
                    MythicListener.reloadMythic(100);

@@ -1,4 +1,4 @@
-package net.azisaba.lifenewpve.libs;
+package net.azisaba.lifenewpve.libs.utils;
 
 import org.jetbrains.annotations.NotNull;
 

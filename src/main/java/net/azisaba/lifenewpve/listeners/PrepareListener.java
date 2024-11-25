@@ -38,15 +38,13 @@ public class PrepareListener implements Listener {
         @EventHandler(priority = org.bukkit.event.EventPriority.HIGHEST)
         public void onGrindstonePrepare(@NotNull PrepareGrindstoneEvent event) {
             ItemStack result = event.getResult();
-            if (result != null && result.getType() != Material.AIR) {
-                for (ItemStack item : event.getInventory().getContents()) {
-                    if (item != null && item.hasItemMeta()) {
-                        PersistentDataContainer dataContainer = item.getItemMeta().getPersistentDataContainer();
-                        if (dataContainer.has(new NamespacedKey(lifeNewPvE, "prevent_grindstone"), PersistentDataType.STRING)) {
-                            event.setResult(null);
-                            break;
-                        }
-                    }
+            if (result == null || result.getType() == Material.AIR) return;
+            for (ItemStack item : event.getInventory().getContents()) {
+                if (item == null || !item.hasItemMeta()) continue;
+                PersistentDataContainer dataContainer = item.getItemMeta().getPersistentDataContainer();
+                if (dataContainer.has(new NamespacedKey(lifeNewPvE, "prevent_grindstone"), PersistentDataType.STRING)) {
+                    event.setResult(null);
+                    break;
                 }
             }
         }

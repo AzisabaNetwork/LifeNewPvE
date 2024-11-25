@@ -1,4 +1,4 @@
-package net.azisaba.lifenewpve.libs;
+package net.azisaba.lifenewpve.libs.utils;
 
 import com.google.common.collect.Multimap;
 import net.azisaba.lifenewpve.LifeNewPvE;

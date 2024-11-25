@@ -10,7 +10,8 @@ import io.lumine.mythic.bukkit.events.*;
 import io.lumine.mythic.core.items.MythicItem;
 import io.lumine.mythic.core.mobs.ActiveMob;
 import net.azisaba.lifenewpve.LifeNewPvE;
-import net.azisaba.lifenewpve.libs.CoolTime;
+import net.azisaba.lifenewpve.libs.utils.CoolTime;
+import net.azisaba.lifenewpve.libs.damage.DamageMath;
 import net.azisaba.lifenewpve.libs.event.ManaModifyEvent;
 import net.azisaba.lifenewpve.libs.mana.Mana;
 import net.azisaba.lifenewpve.mythicmobs.*;
@@ -48,55 +49,51 @@ public class MythicListener implements Listener {
 
     public void initialize(LifeNewPvE plugin) {
         PluginManager pm = Bukkit.getPluginManager();
-        pm.registerEvents(new MythicListener.Conditions(), plugin);
-        pm.registerEvents(new MythicListener.Mechanics(), plugin);
-        pm.registerEvents(new MythicListener.Damage(), plugin);
-        pm.registerEvents(new MythicListener.Reload(), plugin);
-        pm.registerEvents(new MythicListener.ItemGen(), plugin);
-        pm.registerEvents(new MythicListener.Death(), plugin);
+        registerAllEvents(pm, plugin);
     }
 
-    public static double damageMath(double damage, double a, double t) {
-        if (damage <= 0) return 0;
-        double armor = a + t * 2;
-        if (armor < 0) {
-            return damage * Math.pow(1.025, Math.abs(armor));
-        } else {
-            damage *= Math.pow(0.9995, Math.abs(t));
-        }
-        double f = 1 + damage;
-        double math = Math.max(damage / (armor + f) * f, 0);
-        return Double.isInfinite(math) || Double.isNaN(math) ? damage : math;
+    private void registerAllEvents(@NotNull PluginManager pm, LifeNewPvE plugin) {
+        pm.registerEvents(new Conditions(), plugin);
+        pm.registerEvents(new Mechanics(), plugin);
+        pm.registerEvents(new Damage(), plugin);
+        pm.registerEvents(new Reload(), plugin);
+        pm.registerEvents(new ItemGen(), plugin);
+        pm.registerEvents(new Death(), plugin);
     }
 
     public static boolean isMythic() {
+        return isPluginEnabled();
+    }
+
+    private static boolean isPluginEnabled() {
         Plugin plugin = Bukkit.getPluginManager().getPlugin("MythicMobs");
         return plugin != null && plugin.isEnabled();
     }
 
     public static void reloadMythic(long delay) {
-        call();
-        JavaPlugin.getPlugin(LifeNewPvE.class).runSyncDelayed(()-> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "mm re -a"), delay);
+        notifyPlayers();
+        executeReloadCommand(delay);
     }
 
-    public static void call() {
-        Bukkit.getOnlinePlayers().forEach(p -> p.sendMessage(Component.text("§a§lMythicMobsのリロードが行われます。")));
+    private static void executeReloadCommand(long delay) {
+        JavaPlugin.getPlugin(LifeNewPvE.class)
+                .runSyncDelayed(() -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "mm re -a"), delay);
     }
 
-    public static class Reload extends MythicListener {
-
-        @EventHandler
-        public void onReload(@NotNull MythicReloadedEvent e) {
-            new Placeholder(e.getInstance().getPlaceholderManager()).init();
-        }
+    public static void notifyPlayers() {
+        Bukkit.getOnlinePlayers()
+                .forEach(p -> p.sendMessage(Component.text("§a§lMythicMobsのリロードが行われます。")));
     }
 
     public static class Conditions extends MythicListener {
-
         @EventHandler
         public void onConditions(@NotNull MythicConditionLoadEvent event) {
-            String conditionName = event.getConditionName();
-            switch (conditionName.toLowerCase()) {
+            registerCondition(event);
+        }
+
+        private void registerCondition(@NotNull MythicConditionLoadEvent event) {
+            String conditionName = event.getConditionName().toLowerCase();
+            switch (conditionName) {
                 case "mythicinradius":
                     event.register(new MythicInRadius(event.getConfig()));
                     break;
@@ -117,11 +114,14 @@ public class MythicListener implements Listener {
     }
 
     public static class Mechanics extends MythicListener {
-
         @EventHandler
         public void onMechanics(@NotNull MythicMechanicLoadEvent event) {
-            String mechanicName = event.getMechanicName();
-            switch (mechanicName.toLowerCase()) {
+            registerMechanic(event);
+        }
+
+        private void registerMechanic(@NotNull MythicMechanicLoadEvent event) {
+            String mechanicName = event.getMechanicName().toLowerCase();
+            switch (mechanicName) {
                 case "setfalldistance":
                     event.register(new SetFallDistance(event.getConfig()));
                     break;
@@ -129,6 +129,7 @@ public class MythicListener implements Listener {
                     event.register(new RaidBoss());
                 case "modifymana":
                     event.register(new ModifyMana(event.getConfig()));
+                    break;
                 default:
                     // 未知の条件には何もしません
                     break;
@@ -136,26 +137,35 @@ public class MythicListener implements Listener {
         }
     }
 
-    public static class ItemGen extends MythicListener {
+    public static class Reload extends MythicListener {
+        @EventHandler
+        public void onReload(@NotNull MythicReloadedEvent e) {
+            new Placeholder(e.getInstance().getPlaceholderManager()).init();
+        }
+    }
 
+    public static class ItemGen extends MythicListener {
         @EventHandler
         public void onGen(@NotNull MythicMobItemGenerateEvent event) {
+            handleItemGen(event);
+        }
+
+        private void handleItemGen(@NotNull MythicMobItemGenerateEvent event) {
             MythicItem mi = event.getItem();
-            String g = mi.getGroup();
-            if (g == null) return;
-            if (!g.equals("Main-Weapon")) return;
+            String itemGroup = mi != null ? mi.getGroup() : null;
+            if (!"Main-Weapon".equals(itemGroup)) return;
 
             ItemStack item = event.getItemStack();
-            if (item == null || !item.hasItemMeta()) return;
-            net.minecraft.world.item.ItemStack nms = CraftItemStack.asNMSCopy(item);
-            nms.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
-            event.setItemStack(CraftItemStack.asBukkitCopy(nms));
+            if (item != null && item.hasItemMeta()) {
+                net.minecraft.world.item.ItemStack nms = CraftItemStack.asNMSCopy(item);
+                nms.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
+                event.setItemStack(CraftItemStack.asBukkitCopy(nms));
+            }
         }
     }
 
     @SuppressWarnings("ConstantValue")
     public static class Damage extends MythicListener {
-
         private static final Random RANDOM = new Random();
         private static final int DISPLAY_DURATION_TICKS = 30;
         private static final int RANDOM_BOUND = 4;
@@ -165,25 +175,39 @@ public class MythicListener implements Listener {
 
         @EventHandler(priority = EventPriority.LOWEST)
         public void onDamage(@NotNull MythicDamageEvent event) {
+            if (!isTargetConditionValid(event)) return;
+            double finalDamage = calculateFinalDamage(event);
+            event.setDamage(finalDamage);
+        }
+
+        private boolean isTargetConditionValid(@NotNull MythicDamageEvent event) {
             AbstractEntity target = event.getTarget();
-            if (!target.isDamageable() || !target.isLiving()) return;
-            double armor = target.getArmor();
-            double toughness = target.getArmorToughness();
-            event.setDamage(damageMath(event.getDamage(), armor, toughness));
+            return target.isDamageable() && target.isLiving();
+        }
+
+        private double calculateFinalDamage(@NotNull MythicDamageEvent event) {
+            AbstractEntity target = event.getTarget();
+            return DamageMath.getCalculatedDamage(event.getDamage(), target.getArmor(), target.getArmorToughness(), target, event.getCaster().getEntity(), event.getDamageMetadata().getElement());
         }
 
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         public void onDisplay(@NotNull MythicDamageEvent event) {
             AbstractEntity attacker = event.getCaster().getEntity();
             if (!attacker.isPlayer()) return;
+
             Player player = (Player) attacker.asPlayer().getBukkitEntity();
             AbstractEntity victim = event.getTarget();
-            if (victim.isPlayer()) return;
+
+            if (!isDisplayConditionValid(victim)) return;
 
             ActiveMob mob = MythicBukkit.inst().getMobManager().getActiveMob(victim.getUniqueId()).orElse(null);
             if (mob == null) return;
 
             showDamageDisplay(event, player, victim, mob);
+        }
+
+        private boolean isDisplayConditionValid(@NotNull AbstractEntity victim) {
+            return !victim.isPlayer() && victim.isLiving();
         }
 
         private void showDamageDisplay(@NotNull MythicDamageEvent event, Player player, @NotNull AbstractEntity victim, @NotNull ActiveMob mob) {
@@ -192,11 +216,13 @@ public class MythicListener implements Listener {
             double damage = formatDamage(event.getDamage() * multiplier);
             Location location = getRandomLocation(victim.getBukkitEntity().getLocation());
             Component component = MiniMessage.miniMessage().deserialize(getDamageElement(element) + damage);
+            displayDamageText(player, location, component);
+        }
 
+        private void displayDamageText(Player player, @NotNull Location location, Component component) {
             int id = RANDOM.nextInt(Integer.MAX_VALUE);
             PacketHandler.spawnTextDisplay(player, location.getX(), location.getY(), location.getZ(), id);
             PacketHandler.setTextDisplayMeta(player, id, component);
-
             JavaPlugin.getPlugin(LifeNewPvE.class).runSyncDelayed(() -> PacketHandler.removeTextDisplay(player, id), DISPLAY_DURATION_TICKS);
         }
 
@@ -229,37 +255,35 @@ public class MythicListener implements Listener {
         @EventHandler(priority = EventPriority.LOWEST)
         public void onCombatRaidBoss(@NotNull MythicDamageEvent e) {
             AbstractEntity ab = e.getTarget();
+            if (!isRaidBoss(ab, this.getClass())) return;
+            scheduleRaidBossHealthUpdate(ab);
+        }
+
+        private boolean isRaidBoss(@NotNull AbstractEntity ab, Class<?> clazz) {
             ActiveMob mob = MythicBukkit.inst().getMobManager().getActiveMob(ab.getUniqueId()).orElse(null);
-            if (mob == null) return;
-            if (!mob.hasThreatTable()) return;
-
+            if (mob == null || !mob.hasThreatTable()) return false;
             NamespacedKey key = new NamespacedKey(JavaPlugin.getPlugin(LifeNewPvE.class), "raid_boss");
-            if (!ab.getDataContainer().has(key)) return;
+            return ab.getDataContainer().has(key) && !CoolTime.isCoolTime(clazz, ab.getUniqueId(), ct);
+        }
 
-            int coolTime = 20;
-            if (CoolTime.isCoolTime(getClass(), ab.getUniqueId(), ct)) return;
-            CoolTime.setCoolTime(getClass(), ab.getUniqueId(), ct, coolTime);
-
+        private void scheduleRaidBossHealthUpdate(AbstractEntity ab) {
             JavaPlugin.getPlugin(LifeNewPvE.class).runSyncDelayed(() -> {
-                if (ab == null) return;
-                if (mob == null) return;
-
-                Set<Player> players = getNearByPlayers(ab, getPlayerAmount(mob.getThreatTable()));
-
-                double max = mob.getType().getHealth(mob) * getHealthPerPlayer(players.size());
-                double now = ab.getHealth() * getHealthPerPlayer(players.size());
-
-                if (ab.getMaxHealth() == max) return;
-                double scale = max / ab.getMaxHealth();
-                double d = now * scale;
-
-                ab.setMaxHealth(max);
-
-                double set = ab.getHealth() * scale;
-                if (scale < 1) set = d;
-                ab.setHealth(set);
-
+                ActiveMob mob = MythicBukkit.inst().getMobManager().getActiveMob(ab.getUniqueId()).orElse(null);
+                if (ab != null && mob != null) {
+                    updateRaidBossHealth(ab, mob);
+                }
             }, 1);
+        }
+
+        private void updateRaidBossHealth(AbstractEntity ab, @NotNull ActiveMob mob) {
+            Set<Player> players = getNearByPlayers(ab, getPlayerAmount(mob.getThreatTable()));
+            double max = mob.getType().getHealth(mob) * getHealthPerPlayer(players.size());
+            double now = ab.getHealth() * getHealthPerPlayer(players.size());
+            if (ab.getMaxHealth() == max) return;
+            double scale = max / ab.getMaxHealth();
+            double setHealth = Math.min(now * scale, ab.getMaxHealth() * scale);
+            ab.setMaxHealth(max);
+            ab.setHealth(setHealth);
         }
 
         private @NotNull Set<Player> getNearByPlayers(AbstractEntity ab, @NotNull Set<AbstractPlayer> set) {

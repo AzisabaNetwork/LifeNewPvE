@@ -24,40 +24,39 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ManaListener implements Listener {
 
     public void initialize(LifeNewPvE lifeNewPvE) {
-        PluginManager pm  = Bukkit.getPluginManager();
+        PluginManager pm = Bukkit.getPluginManager();
         pm.registerEvents(new ManaListener.Modify(), lifeNewPvE);
     }
 
     public static class Modify extends ManaListener {
-
-        private static final Map<UUID, KeyedBossBar> BOSS_BAR = new HashMap<>();
-
-        private static final Map<UUID, Integer> VISIBLE_COUNT = new ConcurrentHashMap<>();
+        private static final Map<UUID, KeyedBossBar> bossBarMap = new HashMap<>();
+        private static final Map<UUID, Integer> visibleCountMap = new ConcurrentHashMap<>();
+        private static final int MAX_VISIBLE_THRESHOLD = 5;
+        private static final int INITIAL_DELAY = 20;
 
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         public void onManaModify(@NotNull ManaModifyEvent event) {
-            Player p = event.getPlayer();
-            if (BOSS_BAR.containsKey(p.getUniqueId())) {
-                updateBossBar(p);
+            Player player = event.getPlayer();
+            UUID playerId = player.getUniqueId();
+
+            if (bossBarMap.containsKey(playerId)) {
+                updateBossBar(player);
             } else {
-                createBossBar(p);
+                createBossBar(player);
             }
         }
 
-        private static double getProgress(@NotNull Player p) {
-            return getMin(p) / getMax(p);
+        private static double getProgress(@NotNull Player player) {
+            return getMinMana(player) / getMaxMana(player);
         }
 
-        private static double getMin(@NotNull Player p) {
-            return Math.min(Mana.getMana(p.getPersistentDataContainer()), getMax(p));
+        private static double getMinMana(@NotNull Player player) {
+            return Math.min(Mana.getMana(player.getPersistentDataContainer()), getMaxMana(player));
         }
 
-        private static double getMax(@NotNull Player p) {
-            return Mana.getMaxMana(p, p.getPersistentDataContainer());
+        private static double getMaxMana(@NotNull Player player) {
+            return Mana.getMaxMana(player, player.getPersistentDataContainer());
         }
-
-        private static final int MAX_VISIBLE_COUNT = 5;
-        private static final int INITIAL_DELAY = 20;
 
         private static void subtractVisibleCount(UUID playerId) {
             JavaPlugin.getPlugin(LifeNewPvE.class).runAsyncDelayed(() -> {
@@ -68,69 +67,75 @@ public class ManaListener implements Listener {
         }
 
         private static void decrementVisibleCount(UUID playerId) {
-            VISIBLE_COUNT.merge(playerId, -1, Integer::sum);
+            visibleCountMap.merge(playerId, -1, Integer::sum);
         }
 
         private static void ensureVisibleCountWithinLimits(UUID playerId) {
-            if (VISIBLE_COUNT.containsKey(playerId)) {
-                int count = VISIBLE_COUNT.get(playerId);
-                if (count > MAX_VISIBLE_COUNT) {
-                    VISIBLE_COUNT.put(playerId, MAX_VISIBLE_COUNT);
-                }
-            }
+            visibleCountMap.computeIfPresent(playerId, (uuid, count) -> Math.min(count, MAX_VISIBLE_THRESHOLD));
         }
 
         private static void handleBossBarVisibility(UUID playerId) {
             if (getVisibleCount(playerId) <= 0) {
                 removeBossBar(playerId);
             } else {
-                if (getVisibleCount(playerId) > MAX_VISIBLE_COUNT) {
-                    VISIBLE_COUNT.put(playerId, MAX_VISIBLE_COUNT);
-                }
-                subtractVisibleCount(playerId);
+                rescheduleVisibilityCheck(playerId);
             }
+        }
+
+        private static void rescheduleVisibilityCheck(UUID playerId) {
+            if (getVisibleCount(playerId) > MAX_VISIBLE_THRESHOLD) {
+                visibleCountMap.put(playerId, MAX_VISIBLE_THRESHOLD);
+            }
+            subtractVisibleCount(playerId);
         }
 
         private static int getVisibleCount(UUID playerId) {
-            return VISIBLE_COUNT.getOrDefault(playerId, 0);
+            return visibleCountMap.getOrDefault(playerId, 0);
         }
 
-        public static void createBossBar(@NotNull Player p) {
-            NamespacedKey key = new NamespacedKey(JavaPlugin.getPlugin(LifeNewPvE.class), p.getUniqueId().toString().toLowerCase());
-            KeyedBossBar keyed = Bukkit.createBossBar(key, "§b§lマナ §f§l" + getMin(p) + " §f/§§l " + getMax(p) , BarColor.BLUE, BarStyle.SEGMENTED_10);
-            keyed.setProgress(getProgress(p));
-            keyed.addPlayer(p);
-            keyed.setVisible(true);
-            BOSS_BAR.put(p.getUniqueId(), keyed);
-            VISIBLE_COUNT.put(p.getUniqueId(), 3);
-            subtractVisibleCount(p.getUniqueId());
+        public static void createBossBar(@NotNull Player player) {
+            UUID playerId = player.getUniqueId();
+            NamespacedKey key = new NamespacedKey(JavaPlugin.getPlugin(LifeNewPvE.class), playerId.toString().toLowerCase());
+            KeyedBossBar keyedBossBar = Bukkit.createBossBar(key, createBossBarTitle(player), BarColor.BLUE, BarStyle.SEGMENTED_10);
+            keyedBossBar.setProgress(getProgress(player));
+            keyedBossBar.addPlayer(player);
+            keyedBossBar.setVisible(true);
+            bossBarMap.put(playerId, keyedBossBar);
+            visibleCountMap.put(playerId, 3);
+            subtractVisibleCount(playerId);
+        }
+
+        @NotNull
+        private static String createBossBarTitle(@NotNull Player player) {
+            return "§b§lマナ §f§l" + getMinMana(player) + " §f/§f " + getMaxMana(player);
         }
 
         public static void removeBossBar(@NotNull UUID playerId) {
-            VISIBLE_COUNT.remove(playerId);
-            if (BOSS_BAR.containsKey(playerId)) {
-                KeyedBossBar bar = BOSS_BAR.get(playerId);
+            visibleCountMap.remove(playerId);
+            if (bossBarMap.containsKey(playerId)) {
+                KeyedBossBar bar = bossBarMap.get(playerId);
                 bar.setVisible(false);
                 bar.removeAll();
-                BOSS_BAR.remove(playerId);
+                bossBarMap.remove(playerId);
             }
         }
 
-        private static void updateBossBar(@NotNull Player p) {
-            KeyedBossBar bar = BOSS_BAR.get(p.getUniqueId());
-            bar.setTitle("§b§lマナ §f§l" + getMin(p) + " §f/§§l " + getMax(p));
-            bar.setProgress(getProgress(p));
+        private static void updateBossBar(@NotNull Player player) {
+            UUID playerId = player.getUniqueId();
+            KeyedBossBar bar = bossBarMap.get(playerId);
+            bar.setTitle(createBossBarTitle(player));
+            bar.setProgress(getProgress(player));
             bar.setVisible(true);
-            VISIBLE_COUNT.merge(p.getUniqueId(), 3, Integer::sum);
+            visibleCountMap.merge(playerId, 3, Integer::sum);
         }
 
         public static void removeAll() {
-            for (KeyedBossBar bar : BOSS_BAR.values()) {
+            for (KeyedBossBar bar : bossBarMap.values()) {
                 bar.setVisible(false);
                 bar.removeAll();
             }
-            BOSS_BAR.clear();
-            VISIBLE_COUNT.clear();
+            bossBarMap.clear();
+            visibleCountMap.clear();
         }
     }
 }

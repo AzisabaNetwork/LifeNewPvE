@@ -2,6 +2,7 @@ package net.azisaba.lifenewpve.libs;
 
 import net.azisaba.lifenewpve.LifeNewPvE;
 import net.azisaba.lifenewpve.commands.SavePointCommand;
+import net.azisaba.lifenewpve.libs.utils.LifeTime;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;

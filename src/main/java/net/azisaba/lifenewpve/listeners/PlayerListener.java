@@ -15,18 +15,11 @@ import net.azisaba.lifenewpve.commands.ModeCommand;
 import net.azisaba.lifenewpve.libs.mana.Mana;
 import net.azisaba.lifenewpve.libs.VectorTask;
 import net.azisaba.lifenewpve.commands.WorldTeleportCommand;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.entity.CraftEntity;
-import org.bukkit.craftbukkit.entity.CraftPlayer;
-import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -119,7 +112,7 @@ public class PlayerListener implements Listener {
             Player p = e.getPlayer();
             if (!p.hasPermission("lifenewpve.reload.mythicmobs")) return;
             if (e.getMessage().contains("mm r") || e.getMessage().contains("mythicmobs r")) {
-                MythicListener.call();
+                MythicListener.notifyPlayers();
             }
         }
     }
@@ -150,18 +143,13 @@ public class PlayerListener implements Listener {
                 damageAmount*= 1.5;
             } else if (isSweepingAttack) {
                 handleSweepingAttack(event, caster, mainHandItem, damageAmount, mob.getUniqueId());
+                player.playSound(player, Sound.ENTITY_PLAYER_ATTACK_SWEEP, 1, 1);
             } else {
                 player.playSound(player, Sound.ENTITY_PLAYER_ATTACK_STRONG, 1, 1);
             }
 
-            applyDamage(caster, calculateEnchantDamage(player, mainHandItem, event.getAttacked(), (float) damageAmount), mob.getEntity());
+            applyDamage(caster, damageAmount, mob.getEntity());
             event.setCancelled(true);
-        }
-
-        private double calculateEnchantDamage(Player player, ItemStack itemStack, Entity entity, float damageAmount) {
-            ServerPlayer serverPlayer = ((CraftPlayer) player).getHandle();
-            ServerLevel level = serverPlayer.serverLevel();
-            return EnchantmentHelper.modifyDamage(level, CraftItemStack.asNMSCopy(itemStack), ((CraftEntity) entity).getHandle(), level.damageSources().playerAttack(serverPlayer), damageAmount);
         }
 
         private void handleSweepingAttack(@NotNull PrePlayerAttackEntityEvent event, SkillCaster caster, @NotNull ItemStack item, double damageAmount, UUID uuid) {

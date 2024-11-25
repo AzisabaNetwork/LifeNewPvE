@@ -1,7 +1,7 @@
 package net.azisaba.lifenewpve.commands;
 
 import net.azisaba.lifenewpve.LifeNewPvE;
-import net.azisaba.lifenewpve.libs.LifeTime;
+import net.azisaba.lifenewpve.libs.utils.LifeTime;
 import net.azisaba.lifenewpve.libs.Point;
 import net.azisaba.lifenewpve.libs.SavePoint;
 import net.kyori.adventure.text.Component;

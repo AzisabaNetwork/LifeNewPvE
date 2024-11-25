@@ -1,6 +1,7 @@
 package net.azisaba.lifenewpve.commands;
 
 import net.azisaba.lifenewpve.listeners.MultiverseListener;
+import net.azisaba.lifenewpve.listeners.MultiverseWorldDeleteListener;
 import net.kyori.adventure.text.Component;
 import org.bukkit.World;
 import org.bukkit.command.Command;
@@ -16,7 +17,7 @@ public class WorldSetCommand implements CommandExecutor {
         if (!(sender instanceof Player p)) return false;
         World world = p.getWorld();
         p.sendMessage(Component.text(world.getName() + "のgameRuleを更新しました。"));
-        MultiverseListener.settings(world, world.getDifficulty());
+        MultiverseWorldDeleteListener.configureWorldSettings(world, world.getDifficulty());
         return true;
     }
 }
