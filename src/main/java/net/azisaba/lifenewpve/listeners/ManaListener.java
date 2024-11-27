@@ -107,7 +107,7 @@ public class ManaListener implements Listener {
 
         @NotNull
         private static String createBossBarTitle(@NotNull Player player) {
-            return "§b§lマナ §f§l" + getMinMana(player) + " §f/§f " + getMaxMana(player);
+            return "§b§lマナ §f§l" + getMinMana(player) + " §f/§f§l " + getMaxMana(player);
         }
 
         public static void removeBossBar(@NotNull UUID playerId) {

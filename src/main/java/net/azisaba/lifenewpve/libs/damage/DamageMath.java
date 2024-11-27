@@ -6,8 +6,10 @@ import net.azisaba.lifenewpve.libs.enchantments.LifeEnchantment;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -19,6 +21,19 @@ public class DamageMath {
     private static final long defence_amount_per_add = 5;
 
     private static final double damage_multiplier = 0.05;
+
+    @NotNull
+    public static String getDamageString() {
+        NumberFormat num = NumberFormat.getNumberInstance();
+        num.setMaximumFractionDigits(1);
+        return num.format(damage_multiplier * 100) + "%";
+    }
+
+    @NotNull
+    @Contract(pure = true)
+    public static String getDefenceString() {
+        return "+" + defence_amount_per_add;
+    }
 
     @SuppressWarnings("unused")
     public double getPlayerDefence() {

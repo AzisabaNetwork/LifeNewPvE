@@ -29,7 +29,7 @@ dependencies {
 }
 
 group = "net.azisaba"
-version = "1.1.0"
+version = "1.2.0"
 description = "LifeNewPvE"
 java.sourceCompatibility = JavaVersion.VERSION_21
 
