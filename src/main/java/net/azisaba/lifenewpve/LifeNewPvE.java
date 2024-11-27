@@ -69,6 +69,7 @@ public final class LifeNewPvE extends JavaPlugin implements Task {
         new PrepareListener(this).initialize();
         new ChunkListener().initialize(this);
         new ManaListener().initialize(this);
+        new InventoryListener().initialize(this);
     }
 
     private void registerCommands() {

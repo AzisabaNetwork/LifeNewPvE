@@ -76,13 +76,13 @@ public class LifeEnchantment {
     public static Map<Enchantment, Integer> getCustomEnchantmentChanceMap() {
         Map<Enchantment, Integer> enchantmentIntegerMap = new HashMap<>();
         for (Enchantment enchantment : getCustomEnchantments()) {
-            if (enchantment.equals(ALL_ELEMENT_DAMAGE)) enchantmentIntegerMap.put(enchantment, 80);
-            if (enchantment.equals(ALL_DAMAGE)) enchantmentIntegerMap.put(enchantment, 75);
-            if (enchantment.equals(ALL_DEFENCE)) enchantmentIntegerMap.put(enchantment, 65);
-            if (enchantment.equals(MANA_REFINEMENT)) enchantmentIntegerMap.put(enchantment, 95);
-            if (enchantment.equals(MANA_BOOSTER)) enchantmentIntegerMap.put(enchantment, 85);
-            if (enchantment.equals(MANA_REGEN)) enchantmentIntegerMap.put(enchantment, 70);
-            if (enchantment.equals(MANA_STEAL)) enchantmentIntegerMap.put(enchantment, 60);
+            if (enchantment.equals(ALL_ELEMENT_DAMAGE)) enchantmentIntegerMap.put(enchantment, 75);
+            if (enchantment.equals(ALL_DAMAGE)) enchantmentIntegerMap.put(enchantment,60);
+            if (enchantment.equals(ALL_DEFENCE)) enchantmentIntegerMap.put(enchantment, 50);
+            if (enchantment.equals(MANA_REFINEMENT)) enchantmentIntegerMap.put(enchantment, 80);
+            if (enchantment.equals(MANA_BOOSTER)) enchantmentIntegerMap.put(enchantment, 70);
+            if (enchantment.equals(MANA_REGEN)) enchantmentIntegerMap.put(enchantment, 55);
+            if (enchantment.equals(MANA_STEAL)) enchantmentIntegerMap.put(enchantment, 45);
         }
         return enchantmentIntegerMap;
     }

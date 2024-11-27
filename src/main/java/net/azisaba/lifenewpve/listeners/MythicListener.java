@@ -19,6 +19,7 @@ import net.azisaba.lifenewpve.mythicmobs.conditons.ContainRegion;
 import net.azisaba.lifenewpve.mythicmobs.conditons.FromSurface;
 import net.azisaba.lifenewpve.mythicmobs.conditons.HasMana;
 import net.azisaba.lifenewpve.mythicmobs.conditons.MythicInRadius;
+import net.azisaba.lifenewpve.mythicmobs.mechanics.MenuProtect;
 import net.azisaba.lifenewpve.mythicmobs.mechanics.ModifyMana;
 import net.azisaba.lifenewpve.mythicmobs.mechanics.RaidBoss;
 import net.azisaba.lifenewpve.mythicmobs.mechanics.SetFallDistance;
@@ -129,6 +130,9 @@ public class MythicListener implements Listener {
                     event.register(new RaidBoss());
                 case "modifymana":
                     event.register(new ModifyMana(event.getConfig()));
+                    break;
+                case "menuprotect":
+                    event.register(new MenuProtect());
                     break;
                 default:
                     // 未知の条件には何もしません
