@@ -1,8 +1,8 @@
 package net.azisaba.lifenewpve.listeners;
 
 import net.azisaba.lifenewpve.LifeNewPvE;
+import net.azisaba.lifenewpve.libs.event.ManaModifiedEvent;
 import net.azisaba.lifenewpve.libs.mana.Mana;
-import net.azisaba.lifenewpve.libs.event.ManaModifyEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.boss.BarColor;
@@ -35,7 +35,7 @@ public class ManaListener implements Listener {
         private static final int INITIAL_DELAY = 20;
 
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-        public void onManaModify(@NotNull ManaModifyEvent event) {
+        public void onManaModify(@NotNull ManaModifiedEvent event) {
             Player player = event.getPlayer();
             UUID playerId = player.getUniqueId();
 

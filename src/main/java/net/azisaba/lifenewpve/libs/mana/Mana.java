@@ -2,6 +2,7 @@ package net.azisaba.lifenewpve.libs.mana;
 
 import net.azisaba.lifenewpve.LifeNewPvE;
 import net.azisaba.lifenewpve.libs.enchantments.LifeEnchantment;
+import net.azisaba.lifenewpve.libs.event.ManaModifiedEvent;
 import net.azisaba.lifenewpve.libs.event.ManaModifyEvent;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
@@ -95,7 +96,7 @@ public class Mana extends BukkitRunnable {
         Arrays.stream(p.getInventory().getArmorContents()).filter(i -> {
             Enchantment get = LifeEnchantment.MANA_REFINEMENT;
             return  (i != null && i.hasItemMeta() && get != null && i.getItemMeta().hasEnchant(get));
-        }).forEach(i -> refinement.updateAndGet(v -> v +  i.getEnchantmentLevel(LifeEnchantment.MANA_REFINEMENT) * 0.05));
+        }).forEach(i -> refinement.updateAndGet(v -> v +  i.getEnchantmentLevel(LifeEnchantment.MANA_REFINEMENT) * 0.01));
 
         if (modify < 0) {
             return modify / refinement.get();
@@ -117,6 +118,7 @@ public class Mana extends BukkitRunnable {
     public static void setMana(@NotNull Player player, long set) {
         player.getPersistentDataContainer()
                 .set(new NamespacedKey(JavaPlugin.getPlugin(LifeNewPvE.class), "mana"), PersistentDataType.STRING, String.valueOf(set));
+        new ManaModifiedEvent(player, set).callEvent();
     }
 
     public static void setMaxMana(@NotNull Player player, long set) {
@@ -156,7 +158,7 @@ public class Mana extends BukkitRunnable {
         }
         Enchantment manaBooster = LifeEnchantment.MANA_BOOSTER;
         if (manaBooster != null && item.getItemMeta().hasEnchant(manaBooster)) {
-            mana += item.getItemMeta().getEnchantLevel(manaBooster) * 50L;
+            mana += item.getItemMeta().getEnchantLevel(manaBooster) * 10L;
         }
         return mana;
     }
@@ -164,7 +166,7 @@ public class Mana extends BukkitRunnable {
     public static double getManaSteal(@NotNull Player p) {
         ItemStack i = p.getInventory().getItemInMainHand();
         if (i != null && i.hasItemMeta() && LifeEnchantment.MANA_STEAL != null && i.getItemMeta().hasEnchant(LifeEnchantment.MANA_STEAL)) {
-            return i.getItemMeta().getEnchantLevel(LifeEnchantment.MANA_STEAL) * 0.05;
+            return i.getItemMeta().getEnchantLevel(LifeEnchantment.MANA_STEAL) * 0.01;
         }
         return 0;
     }
