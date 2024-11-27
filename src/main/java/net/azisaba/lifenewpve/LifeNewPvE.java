@@ -2,6 +2,7 @@ package net.azisaba.lifenewpve;
 
 import com.onarandombox.MultiverseCore.MultiverseCore;
 import net.azisaba.lifenewpve.commands.*;
+import net.azisaba.lifenewpve.libs.enchantments.LifeEnchantment;
 import net.azisaba.lifenewpve.libs.mana.Mana;
 import net.azisaba.lifenewpve.listeners.*;
 import net.azisaba.loreeditor.api.event.EventBus;
@@ -13,8 +14,10 @@ import org.bukkit.Difficulty;
 import org.bukkit.World;
 import org.bukkit.WorldType;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -82,19 +85,32 @@ public final class LifeNewPvE extends JavaPlugin implements Task {
         Objects.requireNonNull(getCommand("setmana")).setExecutor(new SetManaCommand());
     }
 
-    private static final String PREFIX_JP = "§7装備したとき：";
-    private static final String SUFFIX_JP = "§bマナ +V";
-
     private void registerLore() {
         EventBus.INSTANCE.register(this, ItemEvent.class, 0, e -> {
-            long mana = Mana.getLoreStack(e.getBukkitItem());
-            if (mana == -1) return;
-
-            String manaMessage = SUFFIX_JP.replace("V", String.valueOf(mana));
-            e.addLore(net.azisaba.loreeditor.libs.net.kyori.adventure.text.Component.text(""));
-            e.addLore(net.azisaba.loreeditor.libs.net.kyori.adventure.text.Component.text(PREFIX_JP));
-            e.addLore(net.azisaba.loreeditor.libs.net.kyori.adventure.text.Component.text(manaMessage));
+            manaDescription(e);
+            manaRegister(e);
         });
+    }
+
+    private void manaDescription(@NotNull ItemEvent e) {
+        List<Enchantment> get = Mana.getCustomEnchantments(e.getBukkitItem());
+        if (get.isEmpty()) return;
+
+        for (Enchantment enchantment : get) {
+            for (String message : LifeEnchantment.getEnchantmentDescription(enchantment)) {
+                e.addLore(net.azisaba.loreeditor.libs.net.kyori.adventure.text.Component.text(message));
+            }
+        }
+    }
+
+    private void manaRegister(@NotNull ItemEvent e) {
+        long mana = Mana.getLoreStack(e.getBukkitItem());
+        if (mana == -1) return;
+
+        String manaMessage = "§bマナ +V".replace("V", String.valueOf(mana));
+        e.addLore(net.azisaba.loreeditor.libs.net.kyori.adventure.text.Component.text(""));
+        e.addLore(net.azisaba.loreeditor.libs.net.kyori.adventure.text.Component.text("§7装備したとき："));
+        e.addLore(net.azisaba.loreeditor.libs.net.kyori.adventure.text.Component.text(manaMessage));
     }
 
     @Override

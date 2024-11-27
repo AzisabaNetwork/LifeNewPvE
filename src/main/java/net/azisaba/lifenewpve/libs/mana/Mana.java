@@ -4,18 +4,22 @@ import net.azisaba.lifenewpve.LifeNewPvE;
 import net.azisaba.lifenewpve.libs.enchantments.LifeEnchantment;
 import net.azisaba.lifenewpve.libs.event.ManaModifiedEvent;
 import net.azisaba.lifenewpve.libs.event.ManaModifyEvent;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
+import java.text.NumberFormat;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 @SuppressWarnings("ConstantValue")
@@ -27,7 +31,13 @@ public class Mana extends BukkitRunnable {
         this.player = player;
     }
 
-    private static final double DEFAULT_MANA_REGEN = 0.05;
+    private static final double MANA_REGEN_VALUE = 0.1;
+
+    private static final double MANA_REFINEMENT_VALUE = 0.01;
+
+    private static final long MANA_BOOSTER_VALUE = 10;
+
+    private static final double MANA_STEAL_VALUE = 0.01;
 
     @Override
     public void run() {
@@ -43,19 +53,9 @@ public class Mana extends BukkitRunnable {
         Arrays.stream(p.getInventory().getArmorContents()).filter(i -> {
             Enchantment get = LifeEnchantment.MANA_REGEN;
             return  (i != null && i.hasItemMeta() && get != null && i.getItemMeta().hasEnchant(get));
-        }).forEach(i -> refinement.updateAndGet(v -> v +  i.getEnchantmentLevel(LifeEnchantment.MANA_REGEN) * 0.1));
+        }).forEach(i -> refinement.updateAndGet(v -> v +  i.getEnchantmentLevel(LifeEnchantment.MANA_REGEN) * MANA_REGEN_VALUE));
 
-        return DEFAULT_MANA_REGEN * refinement.get();
-    }
-
-    @SuppressWarnings("unused")
-    public double getDefaultManaRegen() {
-        return DEFAULT_MANA_REGEN;
-    }
-
-    @SuppressWarnings("unused")
-    public double getManaRegen() {
-        return getManaRegen(player);
+        return 0.05 * refinement.get();
     }
 
     public void stop() {
@@ -96,7 +96,7 @@ public class Mana extends BukkitRunnable {
         Arrays.stream(p.getInventory().getArmorContents()).filter(i -> {
             Enchantment get = LifeEnchantment.MANA_REFINEMENT;
             return  (i != null && i.hasItemMeta() && get != null && i.getItemMeta().hasEnchant(get));
-        }).forEach(i -> refinement.updateAndGet(v -> v +  i.getEnchantmentLevel(LifeEnchantment.MANA_REFINEMENT) * 0.01));
+        }).forEach(i -> refinement.updateAndGet(v -> v +  i.getEnchantmentLevel(LifeEnchantment.MANA_REFINEMENT) * MANA_REFINEMENT_VALUE));
 
         if (modify < 0) {
             return modify / refinement.get();
@@ -158,7 +158,7 @@ public class Mana extends BukkitRunnable {
         }
         Enchantment manaBooster = LifeEnchantment.MANA_BOOSTER;
         if (manaBooster != null && item.getItemMeta().hasEnchant(manaBooster)) {
-            mana += item.getItemMeta().getEnchantLevel(manaBooster) * 10L;
+            mana += item.getItemMeta().getEnchantLevel(manaBooster) * MANA_BOOSTER_VALUE;
         }
         return mana;
     }
@@ -166,8 +166,50 @@ public class Mana extends BukkitRunnable {
     public static double getManaSteal(@NotNull Player p) {
         ItemStack i = p.getInventory().getItemInMainHand();
         if (i != null && i.hasItemMeta() && LifeEnchantment.MANA_STEAL != null && i.getItemMeta().hasEnchant(LifeEnchantment.MANA_STEAL)) {
-            return i.getItemMeta().getEnchantLevel(LifeEnchantment.MANA_STEAL) * 0.01;
+            return i.getItemMeta().getEnchantLevel(LifeEnchantment.MANA_STEAL) * MANA_STEAL_VALUE;
         }
         return 0;
+    }
+
+    @NotNull
+    public static List<Enchantment> getCustomEnchantments(ItemStack item) {
+        List<Enchantment> set = new ArrayList<>();
+        if (item == null || !item.hasItemMeta() || item.getType() != Material.ENCHANTED_BOOK) return set;
+        EnchantmentStorageMeta meta = (EnchantmentStorageMeta) item.getItemMeta();
+        if (!meta.hasStoredEnchants()) return set;
+        meta.getStoredEnchants()
+                .entrySet()
+                .stream()
+                .filter(enchantmentIntegerEntry -> !LifeEnchantment.getEnchantmentDescription(enchantmentIntegerEntry.getKey()).isEmpty())
+                .forEach(enchantmentIntegerEntry -> set.add(enchantmentIntegerEntry.getKey()));
+        return set;
+
+    }
+
+    @NotNull
+    public static String getManaRegenString() {
+        NumberFormat num = NumberFormat.getNumberInstance();
+        num.setMaximumFractionDigits(1);
+        return num.format(MANA_REGEN_VALUE * 100) + "%";
+    }
+
+    @NotNull
+    public static String getManaRefinementString() {
+        NumberFormat num = NumberFormat.getNumberInstance();
+        num.setMaximumFractionDigits(1);
+        return num.format(MANA_REFINEMENT_VALUE * 100) + "%";
+    }
+
+    @NotNull
+    @Contract(pure = true)
+    public static String getManaBoosterString() {
+        return "+" + MANA_BOOSTER_VALUE;
+    }
+
+    @NotNull
+    public static String getManaStealString() {
+        NumberFormat num = NumberFormat.getNumberInstance();
+        num.setMaximumFractionDigits(1);
+        return num.format(MANA_STEAL_VALUE * 100) + "%";
     }
 }
