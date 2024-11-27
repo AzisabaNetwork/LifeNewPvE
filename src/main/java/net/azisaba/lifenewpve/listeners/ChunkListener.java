@@ -16,10 +16,16 @@ public class ChunkListener implements Listener {
 
     public void initialize(LifeNewPvE lifeNewPvE) {
         PluginManager pm = Bukkit.getPluginManager();
-        pm.registerEvents(new ChunkListener.Load(), lifeNewPvE);
+        pm.registerEvents(new ChunkListener.Load(lifeNewPvE), lifeNewPvE);
     }
 
     public static class Load implements Listener {
+
+        private final LifeNewPvE lifeNewPvE;
+
+        public Load(LifeNewPvE lifeNewPvE) {
+            this.lifeNewPvE = lifeNewPvE;
+        }
 
         @EventHandler
         public void onChunkLoad(@NotNull ChunkLoadEvent e) {
@@ -30,7 +36,7 @@ public class ChunkListener implements Listener {
                         for (int y = 50; y < 150; y++) {
                             Block block = chunk.getBlock(x, y, z);
                             if (block.getType() != Material.POWDER_SNOW) continue;
-                            JavaPlugin.getPlugin(LifeNewPvE.class).runSync(() -> block.setType(Material.SNOW_BLOCK));
+                            lifeNewPvE.runSync(() -> block.setType(Material.SNOW_BLOCK));
 
                         }
                     }

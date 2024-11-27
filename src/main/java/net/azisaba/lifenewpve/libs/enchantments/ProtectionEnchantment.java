@@ -1,4 +1,4 @@
-package net.azisaba.lifenewpve.libs;
+package net.azisaba.lifenewpve.libs.enchantments;
 
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;

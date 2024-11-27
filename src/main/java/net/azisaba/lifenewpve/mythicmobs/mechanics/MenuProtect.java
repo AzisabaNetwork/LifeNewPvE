@@ -7,7 +7,7 @@ import io.lumine.mythic.api.skills.SkillMetadata;
 import io.lumine.mythic.api.skills.SkillResult;
 import io.lumine.mythic.bukkit.BukkitAdapter;
 import net.azisaba.lifenewpve.LifeNewPvE;
-import net.azisaba.lifenewpve.libs.ProtectionEnchantment;
+import net.azisaba.lifenewpve.libs.enchantments.ProtectionEnchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 

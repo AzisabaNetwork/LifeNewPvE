@@ -40,10 +40,7 @@ public class WorldListener implements Listener {
                     for (int z = 0; z < 16; z++) {
                         for (int y = worldInfo.getMinHeight(); y < worldInfo.getMaxHeight(); y++) {
 
-                            Material m = Material.BEDROCK;
-                            if (y >= 64) {
-                                m = Material.AIR;
-                            }
+                            Material m = y >= 64 ? Material.AIR : Material.BEDROCK;
                             limitedRegion.setBlockData(x + chunkX * 16, y, z + chunkZ * 16, m.createBlockData());
                         }
                     }

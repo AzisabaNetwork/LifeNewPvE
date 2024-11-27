@@ -1,21 +1,9 @@
 package net.azisaba.lifenewpve.listeners;
 
-import com.onarandombox.MultiverseCore.MultiverseCore;
-import com.onarandombox.MultiverseCore.api.MultiverseWorld;
-import com.onarandombox.MultiverseCore.event.MVWorldDeleteEvent;
-import com.sk89q.worldedit.bukkit.BukkitAdapter;
-import com.sk89q.worldguard.WorldGuard;
-import com.sk89q.worldguard.protection.flags.Flag;
-import com.sk89q.worldguard.protection.managers.RegionManager;
-import com.sk89q.worldguard.protection.managers.storage.StorageException;
-import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import net.azisaba.lifenewpve.LifeNewPvE;
-import net.kyori.adventure.text.Component;
 import org.bukkit.*;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.PluginManager;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;

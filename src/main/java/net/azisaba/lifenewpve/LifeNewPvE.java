@@ -4,6 +4,7 @@ import com.onarandombox.MultiverseCore.MultiverseCore;
 import net.azisaba.lifenewpve.commands.*;
 import net.azisaba.lifenewpve.libs.enchantments.LifeEnchantment;
 import net.azisaba.lifenewpve.libs.mana.Mana;
+import net.azisaba.lifenewpve.libs.potion.LifePotion;
 import net.azisaba.lifenewpve.listeners.*;
 import net.azisaba.loreeditor.api.event.EventBus;
 import net.azisaba.loreeditor.api.event.ItemEvent;
@@ -38,7 +39,10 @@ public final class LifeNewPvE extends JavaPlugin implements Task {
         updatePointData();
         updateColors();
 
-        Bukkit.getOnlinePlayers().forEach(p -> new Mana(p).runTaskTimer(JavaPlugin.getPlugin(LifeNewPvE.class), 200, 200));
+        Bukkit.getOnlinePlayers().forEach(p -> {
+            new Mana(p).runTaskTimer(this, 200, 200);
+            new LifePotion(this, p).init();
+        });
         registerLore();
     }
     @Override

@@ -1,7 +1,8 @@
 package net.azisaba.lifenewpve.listeners;
 
 import net.azisaba.lifenewpve.LifeNewPvE;
-import net.azisaba.lifenewpve.libs.ProtectionEnchantment;
+import net.azisaba.lifenewpve.libs.enchantments.ProtectionEnchantment;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -84,6 +85,7 @@ public class InventoryListener implements Listener {
                 for (int i = 0; i < 36; i++) {
                     inventory.setItem(i, new ItemStack(Material.BLACK_STAINED_GLASS_PANE));
                 }
+                e.getWhoClicked().sendMessage(Component.text("§a§l最後の操作が完了しました。§f§lデータ §f-> " + s));
                 break;
             }
 
@@ -115,7 +117,6 @@ public class InventoryListener implements Listener {
                 for (int i = 0; i < list.size(); i++) {
                     inventory.setItem(i, list.get(i));
                 }
-                ProtectionEnchantment.nextStep(inventory);
 
 
             } else {
@@ -126,8 +127,9 @@ public class InventoryListener implements Listener {
                 for (int i = 0; i < list.size(); i++) {
                     inventory.setItem(i, list.get(i));
                 }
-                ProtectionEnchantment.nextStep(inventory);
             }
+            ProtectionEnchantment.nextStep(inventory);
+            e.getWhoClicked().sendMessage(Component.text("§b§l操作が完了しました。"));
         }
 
         private void setItemStack(ItemStack clicked, @NotNull Inventory inv) {

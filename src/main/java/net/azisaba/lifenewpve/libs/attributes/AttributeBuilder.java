@@ -16,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import java.text.NumberFormat;
 import java.util.*;
 
+@SuppressWarnings({"UnstableApiUsage", "unused"})
 public class AttributeBuilder {
 
     private static final Map<String, Attribute> ATTRIBUTE_MAP = initializeAttributeMap();

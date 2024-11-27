@@ -164,7 +164,7 @@ public class EnchantListener implements Listener {
             for (Map.Entry<Enchantment, Integer> entry : enchants.entrySet()) {
                 if (!entry.getKey().canEnchantItem(item)) continue;
                 if (entry.getValue() <= 0) continue;
-                //if (entry.getKey().getKey().value().contains("mana")) continue;
+                if (!LifeEnchantment.getEnchantmentDescription(entry.getKey()).isEmpty()) continue;
                 meta.addEnchant(entry.getKey(), entry.getValue(), false);
             }
         }
@@ -178,7 +178,7 @@ public class EnchantListener implements Listener {
             }
             for (Map.Entry<Enchantment, Integer> entry : enchants.entrySet()) {
                 if (entry.getValue() <= 0) continue;
-                //if (entry.getKey().getKey().value().contains("mana")) continue;
+                if (!LifeEnchantment.getEnchantmentDescription(entry.getKey()).isEmpty()) continue;
                 meta.addStoredEnchant(entry.getKey(), entry.getValue(), false);
             }
         }

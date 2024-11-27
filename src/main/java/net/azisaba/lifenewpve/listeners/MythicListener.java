@@ -10,19 +10,16 @@ import io.lumine.mythic.bukkit.events.*;
 import io.lumine.mythic.core.items.MythicItem;
 import io.lumine.mythic.core.mobs.ActiveMob;
 import net.azisaba.lifenewpve.LifeNewPvE;
-import net.azisaba.lifenewpve.libs.utils.CoolTime;
 import net.azisaba.lifenewpve.libs.damage.DamageMath;
 import net.azisaba.lifenewpve.libs.event.ManaModifyEvent;
 import net.azisaba.lifenewpve.libs.mana.Mana;
-import net.azisaba.lifenewpve.mythicmobs.*;
+import net.azisaba.lifenewpve.libs.utils.CoolTime;
+import net.azisaba.lifenewpve.mythicmobs.Placeholder;
 import net.azisaba.lifenewpve.mythicmobs.conditons.ContainRegion;
 import net.azisaba.lifenewpve.mythicmobs.conditons.FromSurface;
 import net.azisaba.lifenewpve.mythicmobs.conditons.HasMana;
 import net.azisaba.lifenewpve.mythicmobs.conditons.MythicInRadius;
-import net.azisaba.lifenewpve.mythicmobs.mechanics.MenuProtect;
-import net.azisaba.lifenewpve.mythicmobs.mechanics.ModifyMana;
-import net.azisaba.lifenewpve.mythicmobs.mechanics.RaidBoss;
-import net.azisaba.lifenewpve.mythicmobs.mechanics.SetFallDistance;
+import net.azisaba.lifenewpve.mythicmobs.mechanics.*;
 import net.azisaba.lifenewpve.packet.PacketHandler;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -56,7 +53,7 @@ public class MythicListener implements Listener {
     private void registerAllEvents(@NotNull PluginManager pm, LifeNewPvE plugin) {
         pm.registerEvents(new Conditions(), plugin);
         pm.registerEvents(new Mechanics(), plugin);
-        pm.registerEvents(new Damage(), plugin);
+        pm.registerEvents(new Damage(plugin), plugin);
         pm.registerEvents(new Reload(), plugin);
         pm.registerEvents(new ItemGen(), plugin);
         pm.registerEvents(new Death(), plugin);
@@ -134,6 +131,8 @@ public class MythicListener implements Listener {
                 case "menuprotect":
                     event.register(new MenuProtect());
                     break;
+                case "addlifepotion":
+                    event.register(new addLifePotion(event.getConfig()));
                 default:
                     // 未知の条件には何もしません
                     break;
@@ -176,6 +175,12 @@ public class MythicListener implements Listener {
         private static final double RANDOM_SCALE = 0.5;
         private static final double BASE_Y_OFFSET = 1.8;
         private static final String DAMAGE_PREFIX = "<red><bold>⚔";
+
+        private final LifeNewPvE plugin;
+
+        public Damage(LifeNewPvE plugin) {
+            this.plugin = plugin;
+        }
 
         @EventHandler(priority = EventPriority.LOWEST)
         public void onDamage(@NotNull MythicDamageEvent event) {
@@ -227,7 +232,7 @@ public class MythicListener implements Listener {
             int id = RANDOM.nextInt(Integer.MAX_VALUE);
             PacketHandler.spawnTextDisplay(player, location.getX(), location.getY(), location.getZ(), id);
             PacketHandler.setTextDisplayMeta(player, id, component);
-            JavaPlugin.getPlugin(LifeNewPvE.class).runSyncDelayed(() -> PacketHandler.removeTextDisplay(player, id), DISPLAY_DURATION_TICKS);
+            plugin.runSyncDelayed(() -> PacketHandler.removeTextDisplay(player, id), DISPLAY_DURATION_TICKS);
         }
 
         private double formatDamage(double amount) {

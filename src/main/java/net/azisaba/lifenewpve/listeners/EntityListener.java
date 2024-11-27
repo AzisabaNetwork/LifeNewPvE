@@ -3,10 +3,10 @@ package net.azisaba.lifenewpve.listeners;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import net.azisaba.lifenewpve.LifeNewPvE;
-import net.azisaba.lifenewpve.libs.utils.CoolTime;
-import net.azisaba.lifenewpve.libs.mana.Mana;
 import net.azisaba.lifenewpve.libs.VectorTask;
 import net.azisaba.lifenewpve.libs.event.ManaModifyEvent;
+import net.azisaba.lifenewpve.libs.mana.Mana;
+import net.azisaba.lifenewpve.libs.utils.CoolTime;
 import org.bukkit.Bukkit;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Entity;
@@ -17,7 +17,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityInteractEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.plugin.PluginManager;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -29,7 +28,7 @@ public class EntityListener implements Listener {
     public void initialize(LifeNewPvE lifeNewPvE) {
         PluginManager pm = Bukkit.getPluginManager();
         pm.registerEvents(new EntityListener.Interact(), lifeNewPvE);
-        pm.registerEvents(new EntityListener.Regain(), lifeNewPvE);
+        pm.registerEvents(new EntityListener.Regain(lifeNewPvE), lifeNewPvE);
     }
 
     public static class Interact extends EntityListener implements VectorTask {
@@ -53,6 +52,12 @@ public class EntityListener implements Listener {
         private static final Multimap<Class<?>, UUID> multimap = HashMultimap.create();
 
         private static final Map<UUID, Integer> countMap = new HashMap<>();
+
+        private final LifeNewPvE lifeNewPvE;
+
+        public Regain(LifeNewPvE lifeNewPvE) {
+            this.lifeNewPvE = lifeNewPvE;
+        }
 
         @EventHandler
         public void onRegainHealth(@NotNull EntityRegainHealthEvent event) {
@@ -94,7 +99,7 @@ public class EntityListener implements Listener {
 
         private void healCount(UUID playerId) {
             countMap.merge(playerId, 1, Integer::sum);
-            JavaPlugin.getPlugin(LifeNewPvE.class).runAsyncDelayed(() -> countMap.merge(playerId, -1, Integer::sum), 200);
+            lifeNewPvE.runAsyncDelayed(() -> countMap.merge(playerId, -1, Integer::sum), 200);
         }
     }
 }

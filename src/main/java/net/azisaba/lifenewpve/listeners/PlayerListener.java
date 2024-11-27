@@ -12,9 +12,10 @@ import io.lumine.mythic.core.mobs.ActiveMob;
 import io.papermc.paper.event.player.PrePlayerAttackEntityEvent;
 import net.azisaba.lifenewpve.LifeNewPvE;
 import net.azisaba.lifenewpve.commands.ModeCommand;
-import net.azisaba.lifenewpve.libs.mana.Mana;
-import net.azisaba.lifenewpve.libs.VectorTask;
 import net.azisaba.lifenewpve.commands.WorldTeleportCommand;
+import net.azisaba.lifenewpve.libs.VectorTask;
+import net.azisaba.lifenewpve.libs.mana.Mana;
+import net.azisaba.lifenewpve.libs.potion.LifePotion;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -28,7 +29,6 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.PluginManager;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
@@ -42,7 +42,7 @@ public class PlayerListener implements Listener {
         pm.registerEvents(new PlayerListener.ChangeWorld(), lifeNewPvE);
         pm.registerEvents(new PlayerListener.Interact(), lifeNewPvE);
         pm.registerEvents(new PlayerListener.Pre(), lifeNewPvE);
-        pm.registerEvents(new PlayerListener.Join(), lifeNewPvE);
+        pm.registerEvents(new PlayerListener.Join(lifeNewPvE), lifeNewPvE);
     }
 
     public static class Interact extends PlayerListener implements VectorTask {
@@ -94,13 +94,20 @@ public class PlayerListener implements Listener {
 
     public static class Join extends PlayerListener {
 
+        private final LifeNewPvE plugin;
+
+        public Join(LifeNewPvE plugin) {
+            this.plugin = plugin;
+        }
+
         @EventHandler
         public void onJoin(@NotNull PlayerJoinEvent e) {
             Player p = e.getPlayer();
-            JavaPlugin.getPlugin(LifeNewPvE.class).runSyncDelayed(()-> {
+            plugin.runSyncDelayed(()-> {
 
                 ModeCommand.switchMode(p, false);
-                new Mana(p).runTaskTimerAsynchronously(JavaPlugin.getPlugin(LifeNewPvE.class), 200, 200);
+                new Mana(p).runTaskTimerAsynchronously(plugin, 200, 200);
+                new LifePotion(plugin, p).init();
             }, 40);
         }
     }
