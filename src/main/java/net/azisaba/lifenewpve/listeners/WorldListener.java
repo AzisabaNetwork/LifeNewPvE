@@ -16,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Random;
 
 public class WorldListener implements Listener {
+
     public void initialize(LifeNewPvE lifeNewPvE) {
         PluginManager pm = Bukkit.getPluginManager();
         pm.registerEvents(new WorldListener.Init(), lifeNewPvE);

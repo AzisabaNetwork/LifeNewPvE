@@ -76,9 +76,9 @@ public class Mana extends BukkitRunnable {
         NamespacedKey maxManaKey = new NamespacedKey(JavaPlugin.getPlugin(LifeNewPvE.class), "max_mana");
         if (pc.has(maxManaKey, PersistentDataType.STRING)) {
             String s = pc.get(maxManaKey, PersistentDataType.STRING);
-            return (s == null) ? 1000 + getWearingMana(p) : Long.parseLong(s) + getWearingMana(p);
+            return (s == null) ? 500 + getWearingMana(p) : Long.parseLong(s) + getWearingMana(p);
         } else {
-            return 1000 + getWearingMana(p);
+            return 500 + getWearingMana(p);
         }
     }
 

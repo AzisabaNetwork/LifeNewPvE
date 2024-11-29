@@ -133,6 +133,8 @@ public class MythicListener implements Listener {
                     break;
                 case "addlifepotion":
                     event.register(new addLifePotion(event.getConfig()));
+                case "setscale":
+                    event.register(new SetScale(event.getConfig()));
                 default:
                     // 未知の条件には何もしません
                     break;
