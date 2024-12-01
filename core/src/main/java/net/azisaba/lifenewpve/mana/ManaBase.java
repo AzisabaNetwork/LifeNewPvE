@@ -110,6 +110,10 @@ public class ManaBase implements IManaBase, ItemPDC {
         return item.getItemMeta().getPersistentDataContainer().get(key, type);
     }
 
+    public String getPDC(@NotNull ItemStack item, NamespacedKey key, PersistentDataType<String, String> type) {
+        return item.getItemMeta().getPersistentDataContainer().get(key, type);
+    }
+
     @Override
     public void setPDC(EquipmentSlot slot, NamespacedKey key, PersistentDataType<String, String> type, String value) {
         ItemStack item = getItemStack(slot);

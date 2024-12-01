@@ -27,7 +27,7 @@ public class ManaBooster extends ManaBase implements IManaBooster {
     @Override
     public double getManaBoost() {
         String string = pc.get(plugin.getKey().getOrCreate("mana_booster"), PersistentDataType.STRING);
-        return string == null ? MANA_BOOST_BASE : Double.parseDouble(string) + MANA_BOOST_BASE;
+        return string == null ? MANA_BOOST_BASE + ManaUtil.getItemMana(player, "max_mana") : Double.parseDouble(string) + MANA_BOOST_BASE + ManaUtil.getItemMana(player, "max_mana");
     }
 
     @Override

@@ -1,4 +1,4 @@
-package net.azisaba.api.utils;
+package net.azisaba.api;
 
 import org.bukkit.scheduler.BukkitTask;
 

@@ -3,7 +3,7 @@ package net.azisaba.lifenewpve;
 import com.onarandombox.MultiverseCore.MultiverseCore;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import io.lumine.mythic.core.items.MythicItem;
-import net.azisaba.api.utils.SchedulerTask;
+import net.azisaba.api.SchedulerTask;
 import net.azisaba.lifenewpve.commands.*;
 import net.azisaba.lifenewpve.libs.enchantments.LifeEnchantment;
 import net.azisaba.lifenewpve.libs.potion.LifePotion;
@@ -145,7 +145,7 @@ public final class LifeNewPvE extends JavaPlugin implements SchedulerTask {
     }
 
     private void manaRegister(@NotNull ItemEvent e) {
-        double mana = ManaUtil.getItemMana(e.getPlayer());
+        double mana = ManaUtil.getItemMana(e.getPlayer(), "max_mana", e.getBukkitItem());
         if (mana == -1) return;
 
         String manaMessage = "§bマナ +V".replace("V", String.valueOf(mana));
@@ -161,24 +161,21 @@ public final class LifeNewPvE extends JavaPlugin implements SchedulerTask {
         if (mi == null) return;
         String group = mi.getGroup();
         if (group == null) return;
+        e.addLore(net.azisaba.loreeditor.libs.net.kyori.adventure.text.Component.text(""));
         e.addLore(net.azisaba.loreeditor.libs.net.kyori.adventure.text.Component.text("§fカテゴリー: §7" + group));
     }
-
 
     @NotNull
     @Override
     public BukkitTask runAsync(Runnable runnable) {return Bukkit.getScheduler().runTaskAsynchronously(this, runnable);}
 
-
     @NotNull
     @Override
     public BukkitTask runSync(Runnable runnable) {return Bukkit.getScheduler().runTask(this, runnable);}
 
-
     @NotNull
     @Override
     public BukkitTask runSyncDelayed(Runnable runnable, long delay) {return Bukkit.getScheduler().runTaskLater(this, runnable, delay);}
-
 
     @NotNull
     @Override
@@ -187,7 +184,6 @@ public final class LifeNewPvE extends JavaPlugin implements SchedulerTask {
     @NotNull
     @Override
     public BukkitTask runSyncTimer(Runnable runnable, long delay, long loop) {return Bukkit.getScheduler().runTaskTimer(this, runnable, delay, loop);}
-
 
     @NotNull
     @Override

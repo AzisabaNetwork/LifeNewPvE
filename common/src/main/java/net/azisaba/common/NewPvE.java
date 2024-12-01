@@ -1,6 +1,6 @@
 package net.azisaba.common;
 
-import net.azisaba.api.utils.SchedulerTask;
+import net.azisaba.api.SchedulerTask;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;

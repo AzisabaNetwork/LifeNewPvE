@@ -49,5 +49,13 @@ allprojects {
         withType<JavaCompile> { options.encoding = "UTF-8" }
         withType<Javadoc> { options.encoding = "UTF-8" }
         base.archivesName.set("LifeNewPvE")
+
+        shadowJar {
+            relocate("io.papermc.paperlib", "net.azisaba.lifenewpbe.lib.io.papermc.paperlib")
+        }
     }
+}
+
+repositories {
+    mavenCentral()
 }

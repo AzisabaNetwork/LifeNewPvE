@@ -59,15 +59,26 @@ public class ManaUtil {
         return ManaSteal.getPlaceholder();
     }
 
-    public static double getItemMana(Player p) {
+    public static double getItemMana(Player p, String name) {
         ManaBase base = new ManaBase(p, LifeNewPvE.getInstance());
-        Object ob = base.getAllPDC(LifeNewPvE.getInstance().getKey().getOrCreate("net/azisaba/api/mana"), PersistentDataType.STRING);
+        Object ob = base.getAllPDC(LifeNewPvE.getInstance().getKey().getOrCreate(name), PersistentDataType.STRING);
         if (ob instanceof Integer i) {
             return i.doubleValue();
         } else {
             return -1;
         }
     }
+
+    public static double getItemMana(Player p, String name, ItemStack item) {
+        ManaBase base = new ManaBase(p, LifeNewPvE.getInstance());
+        String ob = base.getPDC(item, LifeNewPvE.getInstance().getKey().getOrCreate(name), PersistentDataType.STRING);
+        try {
+            return Integer.parseInt(ob);
+        } catch (NumberFormatException e) {
+            return  -1;
+        }
+    }
+
     @NotNull
     public static List<Enchantment> getContainsEnchantment(ItemStack item) {
         List<Enchantment> set = new ArrayList<>();

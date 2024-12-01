@@ -6,17 +6,17 @@ import io.lumine.mythic.api.config.MythicLineConfig;
 import io.lumine.mythic.api.skills.conditions.IEntityCondition;
 import io.lumine.mythic.api.skills.conditions.ISkillCondition;
 import io.lumine.mythic.bukkit.BukkitAdapter;
-import io.lumine.mythic.bukkit.utils.numbers.RangedLong;
+import io.lumine.mythic.bukkit.utils.numbers.RangedDouble;
 import net.azisaba.lifenewpve.mana.ManaUtil;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 public class HasMana implements ISkillCondition, IEntityCondition {
 
-    private final RangedLong amount;
+    private final RangedDouble amount;
 
     public HasMana(@NotNull MythicLineConfig config) {
-        this.amount = new RangedLong(config.getPlaceholderString(new String[]{"a", "amount"}, "10").get());
+        this.amount = new RangedDouble(config.getPlaceholderString(new String[]{"a", "amount"}, "10").get());
     }
 
     @Override
