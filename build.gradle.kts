@@ -6,41 +6,48 @@ plugins {
     `java-library`
     `maven-publish`
     id("io.github.goooler.shadow") version "8.1.8"
-    id("io.papermc.paperweight.userdev") version "1.7.5"
 }
 
-repositories {
-    mavenCentral()
-    maven("https://repo.papermc.io/repository/maven-public/")
-    maven("https://oss.sonatype.org/content/groups/public/")
-    maven("https://mvn.lumine.io/repository/maven-public/")
-    maven("https://repo.onarandombox.com/content/groups/public/")
-    maven("https://maven.enginehub.org/repo/")
-    maven("https://repo.azisaba.net/repository/maven-public/")
-}
+allprojects {
+    group = "net.azisaba"
+    version = "1.2.0"
+    description = "LifeNewPvE"
 
-dependencies {
-    compileOnly(libs.io.papermc.paper.paper.api)
-    compileOnly("io.lumine:Mythic-Dist:5.7.2")
-    compileOnly("com.onarandombox.multiversecore:multiverse-core:4.3.12")
-    compileOnly("com.sk89q.worldguard:worldguard-bukkit:7.0.12")
-    compileOnly("net.azisaba.loreeditor:plugin:1.2.0:all")
-    paperweight.paperDevBundle("1.21.1-R0.1-SNAPSHOT")
-}
-
-group = "net.azisaba"
-version = "1.2.0"
-description = "LifeNewPvE"
-java.sourceCompatibility = JavaVersion.VERSION_21
-
-publishing {
-    publications.create<MavenPublication>("maven") {
-        from(components["java"])
+    apply {
+        plugin("java-library")
+        plugin("maven-publish")
+        plugin("io.github.goooler.shadow")
     }
-}
 
-tasks {
-    withType<JavaCompile> { options.encoding = "UTF-8" }
-    withType<Javadoc> { options.encoding = "UTF-8" }
-    base.archivesName.set("LifeNewPvE")
+    java {
+        toolchain.languageVersion.set(JavaLanguageVersion.of(21))
+    }
+
+    publishing {
+        publications {
+            create<MavenPublication>("maven") {
+                from(components["java"])
+            }
+        }
+    }
+
+    dependencies {
+        compileOnly("io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT")
+    }
+
+    repositories {
+        mavenCentral()
+        maven("https://repo.papermc.io/repository/maven-public/")
+        maven("https://oss.sonatype.org/content/groups/public/")
+        maven("https://mvn.lumine.io/repository/maven-public/")
+        maven("https://repo.onarandombox.com/content/groups/public/")
+        maven("https://maven.enginehub.org/repo/")
+        maven("https://repo.azisaba.net/repository/maven-public/")
+    }
+
+    tasks {
+        withType<JavaCompile> { options.encoding = "UTF-8" }
+        withType<Javadoc> { options.encoding = "UTF-8" }
+        base.archivesName.set("LifeNewPvE")
+    }
 }
