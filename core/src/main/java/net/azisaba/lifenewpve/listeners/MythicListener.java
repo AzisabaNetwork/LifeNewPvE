@@ -13,10 +13,7 @@ import net.azisaba.lifenewpve.LifeNewPvE;
 import net.azisaba.lifenewpve.libs.damage.DamageMath;
 import net.azisaba.lifenewpve.mana.ManaUtil;
 import net.azisaba.lifenewpve.mythicmobs.Placeholder;
-import net.azisaba.lifenewpve.mythicmobs.conditons.ContainRegion;
-import net.azisaba.lifenewpve.mythicmobs.conditons.FromSurface;
-import net.azisaba.lifenewpve.mythicmobs.conditons.HasMana;
-import net.azisaba.lifenewpve.mythicmobs.conditons.MythicInRadius;
+import net.azisaba.lifenewpve.mythicmobs.conditons.*;
 import net.azisaba.lifenewpve.mythicmobs.mechanics.*;
 import net.azisaba.lifenewpve.utils.CoolTime;
 import net.kyori.adventure.text.Component;
@@ -101,6 +98,12 @@ public class MythicListener implements Listener {
                 case "hasmana":
                     event.register(new HasMana(event.getConfig()));
                     break;
+                case "worldmatch":
+                    event.register(new WorldMatch(event.getConfig()));
+                    break;
+                case "canattack":
+                    event.register(new CanAttack(event.getConfig()));
+                    break;
                 default:
                     // 未知の条件には何もしません
                     break;
@@ -139,6 +142,12 @@ public class MythicListener implements Listener {
                     break;
                 case "faketree":
                     event.register(new FakeTree());
+                    break;
+                case "fakebeacon":
+                    event.register(new FakeBeacon());
+                    break;
+                case "fakewall":
+                    event.register(new FakeWall(event.getConfig()));
                     break;
                 default:
                     // 未知の条件には何もしません

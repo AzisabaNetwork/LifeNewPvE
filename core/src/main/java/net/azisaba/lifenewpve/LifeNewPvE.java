@@ -1,6 +1,8 @@
 package net.azisaba.lifenewpve;
 
+import com.github.retrooper.packetevents.PacketEvents;
 import com.onarandombox.MultiverseCore.MultiverseCore;
+import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import io.lumine.mythic.core.items.MythicItem;
 import net.azisaba.api.SchedulerTask;
@@ -10,6 +12,7 @@ import net.azisaba.lifenewpve.libs.potion.LifePotion;
 import net.azisaba.lifenewpve.listeners.*;
 import net.azisaba.lifenewpve.mana.*;
 import net.azisaba.lifenewpve.mana.listener.ManaListener;
+import net.azisaba.lifenewpve.packet.PacketEventPacketListener;
 import net.azisaba.lifenewpve.utils.key.LifeKey;
 import net.azisaba.loreeditor.api.event.EventBus;
 import net.azisaba.loreeditor.api.event.ItemEvent;
@@ -38,9 +41,19 @@ public final class LifeNewPvE extends JavaPlugin implements SchedulerTask {
     private LifeKey key;
 
     @Override
+    public void onLoad() {
+        PacketEvents.setAPI(SpigotPacketEventsBuilder.build(this));
+        PacketEvents.getAPI().load();
+        PacketEvents.getAPI().getEventManager().registerListener(new PacketEventPacketListener());
+    }
+
+    @Override
     public void onEnable() {
         instance = this;
         key = new LifeKey(this);
+
+        PacketEvents.getAPI().init();
+
         saveDefaultConfig();
         registerListeners();
         registerCommands();
@@ -58,6 +71,7 @@ public final class LifeNewPvE extends JavaPlugin implements SchedulerTask {
     @Override
     public void onDisable() {
         ManaListener.Modify.removeAll();
+        PacketEvents.getAPI().terminate();
     }
 
     private void updatePointData() {

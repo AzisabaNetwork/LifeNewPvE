@@ -43,6 +43,7 @@ allprojects {
         maven("https://repo.onarandombox.com/content/groups/public/")
         maven("https://maven.enginehub.org/repo/")
         maven("https://repo.azisaba.net/repository/maven-public/")
+        maven("https://repo.codemc.io/repository/maven-releases/")
     }
 
     tasks {

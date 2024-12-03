@@ -8,6 +8,7 @@ depend:
   - Multiverse-Core
   - WorldGuard
   - LoreEditor
+  - packetevents
 
 commands:
   worldregen:
@@ -73,20 +74,20 @@ permissions:
       lifenewpve.command.worldcreate: true
       lifenewpve.command.worldregen: true
   lifenewpve.reload.mythicmobs:
-    default: false
+    default: op
   lifenewpve.command.setmaxmana:
-    default: false
+    default: op
   lifenewpve.command.setmana:
-    default: false
+    default: op
   lifenewpve.command.mode:
-    default: false
+    default: op
   lifenewpve.command.savepoint:
-    default: false
+    default: op
   lifenewpve.command.worldset:
-    default: false
+    default: op
   lifenewpve.command.worldteleport:
-    default: false
+    default: op
   lifenewpve.command.worldcreate:
-    default: false
+    default: op
   lifenewpve.command.worldregen:
-    default: false
+    default: op

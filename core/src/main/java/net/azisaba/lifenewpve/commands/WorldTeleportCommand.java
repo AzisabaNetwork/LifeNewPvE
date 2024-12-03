@@ -1,5 +1,7 @@
 package net.azisaba.lifenewpve.commands;
 
+import com.onarandombox.MultiverseCore.MultiverseCore;
+import com.onarandombox.MultiverseCore.api.MultiverseWorld;
 import net.azisaba.lifenewpve.listeners.MultiverseListener;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -9,6 +11,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,7 +28,7 @@ public class WorldTeleportCommand implements TabExecutor {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length == 1 && sender instanceof Player player) {
+        if (args.length <= 1 && sender instanceof Player player) {
             return handlePlayerCommand(player, args);
         } else if (args.length == 2) {
             return handleOtherSender(sender, args, false);
@@ -39,13 +42,13 @@ public class WorldTeleportCommand implements TabExecutor {
         String worldName;
         if (args.length < 1) {
             worldName = player.getWorld().getName();
-            player.teleport(player.getWorld().getSpawnLocation());
+            teleportSpawn(player, player.getWorld());
         } else {
             World world = Bukkit.getWorld(args[0]);
             if (!isValidWorld(world, player)) return false;
             assert world != null;
             worldName = world.getName();
-            player.teleport(world.getSpawnLocation());
+            teleportSpawn(player, world);
             if (worldName.contains("resource")) {
                 TELEPORT_PLAYER.add(player.getUniqueId());
             }
@@ -72,7 +75,7 @@ public class WorldTeleportCommand implements TabExecutor {
             if (location == null) return false;
             player.teleport(location);
         } else {
-            player.teleport(world.getSpawnLocation());
+            teleportSpawn(player, world);
         }
 
         player.sendMessage("§a§l" + worldName + "ワールドにテレポートしました。");
@@ -105,6 +108,12 @@ public class WorldTeleportCommand implements TabExecutor {
             sender.sendMessage(INVALID_LOCATION_MSG);
             return null;
         }
+    }
+
+    private void teleportSpawn(@NotNull Player player, World world) {
+        MultiverseCore core = JavaPlugin.getPlugin(MultiverseCore.class);
+        MultiverseWorld mv = core.getMVWorldManager().getMVWorld(world);
+        player.teleport(mv.getSpawnLocation());
     }
 
     public static boolean isTeleporting(@NotNull Player p) {

@@ -47,7 +47,7 @@ public class ManaBase implements IManaBase, ItemPDC {
     @Override
     public double getMaxMana() {
         String string = pc.get(plugin.getKey().getOrCreate(max_mana_value), PersistentDataType.STRING);
-        return string == null ? 500 : Double.parseDouble(string);
+        return string == null ? 500 + ManaUtil.getItemMana(player, "max_mana") : Double.parseDouble(string) + ManaUtil.getItemMana(player, "max_mana");
     }
 
     @Override

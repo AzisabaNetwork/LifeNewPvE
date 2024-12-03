@@ -4,8 +4,8 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import net.azisaba.lifenewpve.LifeNewPvE;
 import net.azisaba.lifenewpve.libs.VectorTask;
-import net.azisaba.lifenewpve.utils.CoolTime;
 import net.azisaba.lifenewpve.mana.ManaUtil;
+import net.azisaba.lifenewpve.utils.CoolTime;
 import org.bukkit.Bukkit;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Entity;
@@ -13,13 +13,17 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityInteractEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.plugin.PluginManager;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 public class EntityListener implements Listener {
@@ -28,6 +32,7 @@ public class EntityListener implements Listener {
         PluginManager pm = Bukkit.getPluginManager();
         pm.registerEvents(new EntityListener.Interact(), lifeNewPvE);
         pm.registerEvents(new EntityListener.Regain(lifeNewPvE), lifeNewPvE);
+        pm.registerEvents(new Damage(), lifeNewPvE);
     }
 
     public static class Interact extends EntityListener implements VectorTask {
@@ -99,6 +104,21 @@ public class EntityListener implements Listener {
         private void healCount(UUID playerId) {
             countMap.merge(playerId, 1, Integer::sum);
             lifeNewPvE.runAsyncDelayed(() -> countMap.merge(playerId, -1, Integer::sum), 200);
+        }
+    }
+
+    public static class Damage implements Listener {
+
+        @EventHandler
+        public void onDamage(@NotNull EntityDamageEvent event) {
+            if (!(event.getEntity() instanceof LivingEntity livingEntity)) return;
+            if (!event.getCause().equals(EntityDamageEvent.DamageCause.POISON)) return;
+            if (!livingEntity.hasPotionEffect(PotionEffectType.POISON)) return;
+
+            PotionEffect effect = livingEntity.getPotionEffect(PotionEffectType.POISON);
+            int level = Objects.requireNonNull(effect).getAmplifier();
+
+            event.setDamage(event.getDamage() + Math.sqrt(level));
         }
     }
 }
