@@ -95,6 +95,7 @@ public final class LifeNewPvE extends JavaPlugin implements SchedulerTask {
         Objects.requireNonNull(getCommand("mode")).setExecutor(new ModeCommand());
         Objects.requireNonNull(getCommand("setmana")).setExecutor(new SetManaCommand());
         Objects.requireNonNull(getCommand("setmaxmana")).setExecutor(new SetMaxManaCommand());
+        Objects.requireNonNull(getCommand("dungeon")).setExecutor(new DungeonCommand());
     }
 
     private void registerLore() {
