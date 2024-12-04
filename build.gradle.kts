@@ -43,17 +43,12 @@ allprojects {
         maven("https://repo.onarandombox.com/content/groups/public/")
         maven("https://maven.enginehub.org/repo/")
         maven("https://repo.azisaba.net/repository/maven-public/")
-        maven("https://repo.codemc.io/repository/maven-releases/")
     }
 
     tasks {
         withType<JavaCompile> { options.encoding = "UTF-8" }
         withType<Javadoc> { options.encoding = "UTF-8" }
         base.archivesName.set("LifeNewPvE")
-
-        shadowJar {
-            relocate("io.papermc.paperlib", "net.azisaba.lifenewpbe.lib.io.papermc.paperlib")
-        }
     }
 }
 

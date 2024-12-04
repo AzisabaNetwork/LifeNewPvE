@@ -13,7 +13,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
-public class addLifePotion implements ISkillMechanic, ITargetedEntitySkill {
+public class AddLifePotion implements ISkillMechanic, ITargetedEntitySkill {
 
     private final int level;
 
@@ -21,7 +21,7 @@ public class addLifePotion implements ISkillMechanic, ITargetedEntitySkill {
 
     private final String name;
 
-    public addLifePotion(@NotNull MythicLineConfig config) {
+    public AddLifePotion(@NotNull MythicLineConfig config) {
         this.name = config.getString(new String[]{"name", "n", "t", "type"}, "life");
         this.level = config.getInteger(new String[]{"level", "l", "a", "amount"}, 1);
         this.seconds = config.getLong(new String[]{"seconds", "s", "d", "duration"}, 30);

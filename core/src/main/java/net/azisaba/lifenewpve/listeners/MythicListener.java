@@ -47,7 +47,7 @@ public class MythicListener implements Listener {
     private void registerAllEvents(@NotNull PluginManager pm, LifeNewPvE plugin) {
         pm.registerEvents(new Conditions(), plugin);
         pm.registerEvents(new Mechanics(), plugin);
-        pm.registerEvents(new Damage(plugin), plugin);
+        pm.registerEvents(new Damage(), plugin);
         pm.registerEvents(new Reload(), plugin);
         pm.registerEvents(new ItemGen(), plugin);
         pm.registerEvents(new Death(), plugin);
@@ -132,22 +132,13 @@ public class MythicListener implements Listener {
                     event.register(new MenuProtect());
                     break;
                 case "addlifepotion":
-                    event.register(new addLifePotion(event.getConfig()));
+                    event.register(new AddLifePotion(event.getConfig()));
                     break;
                 case "setscale":
                     event.register(new SetScale(event.getConfig()));
                     break;
-                case "fakeblock":
-                    event.register(new FakeBlock(event.getConfig()));
-                    break;
-                case "faketree":
-                    event.register(new FakeTree());
-                    break;
-                case "fakebeacon":
-                    event.register(new FakeBeacon());
-                    break;
-                case "fakewall":
-                    event.register(new FakeWall(event.getConfig()));
+                case "fake":
+                    event.register(new Fake(event.getConfig()));
                     break;
                 default:
                     // 未知の条件には何もしません
@@ -185,12 +176,6 @@ public class MythicListener implements Listener {
 
     @SuppressWarnings("ConstantValue")
     public static class Damage extends MythicListener {
-
-        private final LifeNewPvE plugin;
-
-        public Damage(LifeNewPvE plugin) {
-            this.plugin = plugin;
-        }
 
         @EventHandler(priority = EventPriority.LOWEST)
         public void onDamage(@NotNull MythicDamageEvent event) {
