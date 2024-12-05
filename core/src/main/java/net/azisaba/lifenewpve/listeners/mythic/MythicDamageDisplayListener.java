@@ -1,4 +1,4 @@
-package net.azisaba.minecraft;
+package net.azisaba.lifenewpve.listeners.mythic;
 
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.bukkit.MythicBukkit;
@@ -6,20 +6,24 @@ import io.lumine.mythic.bukkit.events.MythicDamageEvent;
 import io.lumine.mythic.core.mobs.ActiveMob;
 import net.azisaba.common.DamageColor;
 import net.azisaba.common.NewPvE;
+import net.azisaba.lifenewpve.LifeNewPvE;
+import net.azisaba.minecraft.PacketHandler;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
 
 import java.text.NumberFormat;
 import java.util.Map;
 import java.util.Random;
 
-public class MythicListener implements Listener {
+public class MythicDamageDisplayListener extends MythicDamageListener {
+
+    public MythicDamageDisplayListener(LifeNewPvE lifeNewPvE) {
+        super(lifeNewPvE);
+    }
 
     private static final Random RANDOM = new Random();
     private static final int DISPLAY_DURATION_TICKS = 30;
@@ -53,7 +57,7 @@ public class MythicListener implements Listener {
         double multiplier = mob.getType().getDamageModifiers().getOrDefault(element, 1.0);
         double damage = formatDamage(event.getDamage() * multiplier);
         Location location = getRandomLocation(victim.getBukkitEntity().getLocation());
-        Component component = MiniMessage.miniMessage().deserialize(getDamageElement(element) + damage);
+        Component component = Component.text(getDamageElement(element) + damage);
         displayDamageText(player, location, component);
     }
 
@@ -85,6 +89,6 @@ public class MythicListener implements Listener {
         return DamageColor.getColors().entrySet().stream()
                 .filter(entry -> element.equalsIgnoreCase(entry.getKey()))
                 .map(Map.Entry::getValue)
-                .findFirst().map(v -> DAMAGE_PREFIX.replaceAll("<white><bold>", v)).orElse(DAMAGE_PREFIX);
+                .findFirst().map(v -> DAMAGE_PREFIX.replaceAll("§7§l", v)).orElse(DAMAGE_PREFIX);
     }
 }

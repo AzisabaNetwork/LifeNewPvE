@@ -1,7 +1,6 @@
 package net.azisaba.lifenewpve.commands;
 
-import net.azisaba.lifenewpve.listeners.MultiverseListener;
-import net.azisaba.lifenewpve.listeners.MultiverseWorldDeleteListener;
+import net.azisaba.lifenewpve.listeners.mv.MultiverseWorldDeleteListener;
 import net.kyori.adventure.text.Component;
 import org.bukkit.World;
 import org.bukkit.command.Command;

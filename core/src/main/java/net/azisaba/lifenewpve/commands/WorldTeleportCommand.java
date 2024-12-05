@@ -2,7 +2,7 @@ package net.azisaba.lifenewpve.commands;
 
 import com.onarandombox.MultiverseCore.MultiverseCore;
 import com.onarandombox.MultiverseCore.api.MultiverseWorld;
-import net.azisaba.lifenewpve.listeners.MultiverseListener;
+import net.azisaba.lifenewpve.listeners.mv.MultiverseListener;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;

@@ -44,7 +44,7 @@ public class Fake implements ISkillMechanic, ITargetedLocationSkill {
     }
 
     @Override
-    public SkillResult castAtLocation(@NotNull SkillMetadata skillMetadata, AbstractLocation abstractLocation) {
+    public SkillResult castAtLocation(@NotNull SkillMetadata skillMetadata, @NotNull AbstractLocation abstractLocation) {
         AbstractEntity ab = skillMetadata.getCaster().getEntity();
         if (!ab.isPlayer()) return SkillResult.SUCCESS;
         Set<AbstractPlayer> set = Set.of(ab.asPlayer());

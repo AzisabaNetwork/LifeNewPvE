@@ -7,6 +7,7 @@ import io.lumine.mythic.api.skills.ITargetedEntitySkill;
 import io.lumine.mythic.api.skills.SkillMetadata;
 import io.lumine.mythic.api.skills.SkillResult;
 import io.lumine.mythic.bukkit.utils.Schedulers;
+import net.azisaba.lifenewpve.LifeNewPvE;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
@@ -20,11 +21,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class SetScale implements ISkillMechanic, ITargetedEntitySkill {
 
+    private final LifeNewPvE plugin;
+
     private final float scale;
 
     private final long time;
 
-    public SetScale(@NotNull MythicLineConfig config) {
+    public SetScale(LifeNewPvE plugin, @NotNull MythicLineConfig config) {
+        this.plugin = plugin;
         this.scale = Float.parseFloat(config.getPlaceholderString(new String[]{"s", "scale", "size"}, "1").get());
         this.time = Long.parseLong(config.getPlaceholderString(new String[]{"t", "time", "d", "duration"}, "1").get());
     }
@@ -55,7 +59,7 @@ public class SetScale implements ISkillMechanic, ITargetedEntitySkill {
     private void livingTask(@NotNull AttributeInstance attr, float s, @NotNull AtomicInteger count) {
         if (count.get() >= time) return;
 
-        NamespacedKey key = new NamespacedKey("lifenewpve", "scale" + count.get());
+        NamespacedKey key = new NamespacedKey(plugin, "scale" + count.get());
         attr.addModifier(new AttributeModifier(key, s, AttributeModifier.Operation.ADD_NUMBER));
 
         Schedulers.async().runLater(()-> {

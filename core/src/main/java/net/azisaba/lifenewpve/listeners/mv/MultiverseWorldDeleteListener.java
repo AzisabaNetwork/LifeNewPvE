@@ -1,4 +1,4 @@
-package net.azisaba.lifenewpve.listeners;
+package net.azisaba.lifenewpve.listeners.mv;
 
 import com.onarandombox.MultiverseCore.MultiverseCore;
 import com.onarandombox.MultiverseCore.api.MultiverseWorld;
@@ -10,6 +10,7 @@ import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.managers.storage.StorageException;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import net.azisaba.lifenewpve.LifeNewPvE;
+import net.azisaba.lifenewpve.listeners.mythic.MythicListener;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Difficulty;
@@ -30,51 +31,76 @@ public class MultiverseWorldDeleteListener extends MultiverseListener {
     }
 
     @EventHandler
-    public void onDelete(@NotNull MVWorldDeleteEvent event) {
+    public void onWorldDelete(@NotNull MVWorldDeleteEvent event) {
         MultiverseWorld world = event.getWorld();
         String worldName = world.getName();
-        if (!worldName.toLowerCase().contains("resource")) return;
 
-        RESET_WORLD_NAMES.add(worldName);
+        if (!isResourceWorld(worldName)) return;
+
+        addWorldNameToReset(worldName);
+
         World bukkitWorld = world.getCBWorld();
+        RegionManager regionManager = getRegionManager(bukkitWorld);
+        if (regionManager == null) return;
+
+        ProtectedRegion globalRegion = regionManager.getRegion(ProtectedRegion.GLOBAL_REGION);
+        ProtectedRegion spawnRegion = regionManager.getRegion("spawn");
+        if (globalRegion == null || spawnRegion == null) return;
+
+        regenerateAndApplyFlags(worldName, world, globalRegion, spawnRegion);
+    }
+
+    private boolean isResourceWorld(@NotNull String worldName) {
+        return worldName.toLowerCase().contains("resource");
+    }
+
+    private void addWorldNameToReset(String worldName) {
+        RESET_WORLD_NAMES.add(worldName);
+    }
+
+    private RegionManager getRegionManager(World bukkitWorld) {
+        com.sk89q.worldedit.world.World editWorld = BukkitAdapter.adapt(bukkitWorld);
+        return WorldGuard.getInstance().getPlatform().getRegionContainer().get(editWorld);
+    }
+
+    private void regenerateAndApplyFlags(String worldName, MultiverseWorld world, ProtectedRegion globalRegion, ProtectedRegion spawnRegion) {
+        plugin.runSyncDelayed(() -> regenerateWorld(worldName, world), 50);
+        plugin.runSyncDelayed(() -> applyWorldGuardFlags(world.getCBWorld(), globalRegion.getFlags(), spawnRegion.getFlags()), 200);
+    }
+
+    private void regenerateWorld(String worldName, @NotNull MultiverseWorld world) {
+        MultiverseCore core = JavaPlugin.getPlugin(MultiverseCore.class);
         WorldType worldType = world.getWorldType();
         String generator = world.getGenerator();
         World.Environment environment = world.getEnvironment();
         Difficulty difficulty = world.getDifficulty();
 
-        com.sk89q.worldedit.world.World editWorld = BukkitAdapter.adapt(bukkitWorld);
-        RegionManager regionManager = WorldGuard.getInstance().getPlatform().getRegionContainer().get(editWorld);
-        if (regionManager == null) return;
-
-        ProtectedRegion globalRegion = regionManager.getRegion(ProtectedRegion.GLOBAL_REGION);
-        if (globalRegion == null) return;
-
-        ProtectedRegion spawnRegion = regionManager.getRegion("spawn");
-        if (spawnRegion == null) return;
-
-        plugin.runSyncDelayed(() -> regenerateWorld(worldName, generator, difficulty, worldType, environment), 50);
-        plugin.runSyncDelayed(() -> applyWorldGuardFlags(bukkitWorld, new HashMap<>(globalRegion.getFlags()), new HashMap<>(spawnRegion.getFlags())), 200);
-    }
-
-    private void regenerateWorld(String worldName, String generator, Difficulty difficulty, WorldType worldType, World.Environment environment) {
-        MultiverseCore core = JavaPlugin.getPlugin(MultiverseCore.class);
         if (core.getMVWorldManager().addWorld(worldName, environment, UUID.randomUUID().toString(), worldType, true, generator)) {
-            plugin.runSyncDelayed(() -> {
-                World world = core.getMVWorldManager().getMVWorld(worldName).getCBWorld();
-                if (world == null) return;
-                configureWorldSettings(world, difficulty);
-                plugin.getLogger().info(worldName + "の生成に成功しました。");
-                if (MythicListener.isMythic()) {
-                    MythicListener.reloadMythic(100);
-                }
-                loadChunks(world);
-                RESET_WORLD_NAMES.remove(worldName);
-            }, 20);
+            initializeGeneratedWorld(worldName, difficulty);
         } else {
-            plugin.getLogger().info(worldName + "の生成に失敗しました。");
-            RESET_WORLD_NAMES.remove(worldName);
+            handleWorldCreationFailure(worldName);
         }
     }
+
+    private void initializeGeneratedWorld(String worldName, Difficulty difficulty) {
+        plugin.runSyncDelayed(() -> {
+            World world = JavaPlugin.getPlugin(MultiverseCore.class).getMVWorldManager().getMVWorld(worldName).getCBWorld();
+            if (world == null) return;
+            configureWorldSettings(world, difficulty);
+            plugin.getLogger().info(worldName + "の生成に成功しました。");
+            if (MythicListener.isMythic()) {
+                MythicListener.reloadMythic(100);
+            }
+            loadChunks(world);
+            RESET_WORLD_NAMES.remove(worldName);
+        }, 20);
+    }
+
+    private void handleWorldCreationFailure(String worldName) {
+        plugin.getLogger().info(worldName + "の生成に失敗しました。");
+        RESET_WORLD_NAMES.remove(worldName);
+    }
+
 
     private void loadChunks(@NotNull World world) {
         plugin.runSyncDelayed(() -> {

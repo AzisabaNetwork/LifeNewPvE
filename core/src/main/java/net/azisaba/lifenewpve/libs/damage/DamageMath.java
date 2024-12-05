@@ -16,7 +16,7 @@ import java.util.Set;
 
 public class DamageMath {
 
-    private static final double player_defence = 30.0;
+    private static final double player_defence = 20.0;
 
     private static final long defence_amount_per_add = 5;
 
@@ -70,15 +70,30 @@ public class DamageMath {
 
     private static double calculate(double damage, double a, double t, double offset) {
         if (damage <= 0) return 0;
-        double armor = a + t * 2 + offset;
+        double armor = 2 * a + t + offset;
+        damage = getArmorRewardCut(damage, armor, t);
+
+        double math = getDamageScaleCut(damage, armor) * getArmorScaleCut(armor, a);
+        return Double.isInfinite(math) || Double.isNaN(math) ? damage : math;
+    }
+
+    private static double getDamageScaleCut(double damage, double armor) {
+        double f = 1 + damage;
+        return  Math.max(damage / (armor + f) * f, 0);
+    }
+
+    private static double getArmorScaleCut(double armor, double a) {
+        double m = armor * 2 - a;
+        return  Math.pow(m / (m + armor), 2);
+    }
+
+    private static double getArmorRewardCut(double damage, double armor, double t) {
         if (armor < 0) {
             return damage * Math.pow(1.025, Math.abs(armor));
         } else {
-            damage *= Math.pow(0.9995, Math.abs(t));
+            damage *= Math.pow(0.995, Math.abs(t));
         }
-        double f = 1 + damage;
-        double math = Math.max(damage / (armor + f) * f, 0);
-        return Double.isInfinite(math) || Double.isNaN(math) ? damage : math;
+        return damage;
     }
 
     protected static double getProtection(@NotNull Player p) {

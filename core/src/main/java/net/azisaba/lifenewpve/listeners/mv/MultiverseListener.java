@@ -1,4 +1,4 @@
-package net.azisaba.lifenewpve.listeners;
+package net.azisaba.lifenewpve.listeners.mv;
 
 import net.azisaba.lifenewpve.LifeNewPvE;
 import org.bukkit.*;
