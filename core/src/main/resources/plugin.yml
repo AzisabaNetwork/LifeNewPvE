@@ -1,5 +1,5 @@
 name: LifeNewPvE
-version: '1.3.0'
+version: '${version}'
 main: net.azisaba.lifenewpve.LifeNewPvE
 api-version: '1.21'
 
