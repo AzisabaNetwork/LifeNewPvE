@@ -1,7 +1,6 @@
 package net.azisaba.lifenewpve.listeners.player;
 
 import net.azisaba.lifenewpve.LifeNewPvE;
-import net.azisaba.lifenewpve.commands.ModeCommand;
 import net.azisaba.lifenewpve.libs.potion.LifePotion;
 import net.azisaba.lifenewpve.mana.ManaRegen;
 import org.bukkit.entity.Player;
@@ -21,8 +20,6 @@ public class PlayerJoinListener extends PlayerListener {
     public void onJoin(@NotNull PlayerJoinEvent e) {
         Player p = e.getPlayer();
         plugin.runSyncDelayed(()-> {
-
-            ModeCommand.switchMode(p, false);
             new ManaRegen(p, plugin).autoRegen();
             new LifePotion(plugin, p).init();
         }, 40);

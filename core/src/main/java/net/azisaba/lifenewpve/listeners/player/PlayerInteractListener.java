@@ -1,8 +1,11 @@
 package net.azisaba.lifenewpve.listeners.player;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import net.azisaba.lifenewpve.LifeNewPvE;
 import net.azisaba.lifenewpve.database.DBLootChest;
 import net.azisaba.lifenewpve.libs.VectorTask;
+import net.azisaba.lifenewpve.utils.CoolTime;
 import net.azisaba.lifenewpve.utils.key.LifeKey;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
@@ -34,12 +37,16 @@ public class PlayerInteractListener extends PlayerListener {
 
     private static final Set<UUID> tempCancelled = new HashSet<>();
 
+    private static final Multimap<Class<?>, UUID> ct = HashMultimap.create();
+
     @EventHandler
     public void onInteract(@NotNull PlayerInteractEvent e) {
         if (!e.getAction().equals(Action.PHYSICAL)) return;
         Block block = e.getClickedBlock();
         if (block == null) return;
         Player player = e.getPlayer();
+        if (CoolTime.isCoolTime(getClass(), player.getUniqueId(), ct)) return;
+        CoolTime.setCoolTime(getClass(), player.getUniqueId(), ct, 20);
         VectorTask.applyVelocityAndRunTask(player, player, VectorTask.getVector(block, player));
 
     }
