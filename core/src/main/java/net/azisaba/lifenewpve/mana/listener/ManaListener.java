@@ -15,6 +15,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.PluginManager;
 import org.jetbrains.annotations.NotNull;
 
+import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -111,7 +112,9 @@ public class ManaListener implements Listener {
         @NotNull
         private String createBossBarTitle(@NotNull Player player) {
             ManaBase mana = new ManaBase(player, lifeNewPvE);
-            return "§b§lマナ §f§l" + mana.getMana() + " §f/§f§l " + mana.getMaxMana();
+            NumberFormat num = NumberFormat.getInstance();
+            num.setMaximumFractionDigits(0);
+            return "§b§lマナ §f§l" + num.format(mana.getMana())+ " §f/§f§l " + num.format(mana.getMaxMana());
         }
 
         public static void removeBossBar(@NotNull UUID playerId) {

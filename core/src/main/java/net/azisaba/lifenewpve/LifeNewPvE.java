@@ -5,8 +5,10 @@ import io.lumine.mythic.bukkit.MythicBukkit;
 import io.lumine.mythic.core.items.MythicItem;
 import net.azisaba.api.SchedulerTask;
 import net.azisaba.lifenewpve.commands.*;
+import net.azisaba.lifenewpve.database.DBCon;
 import net.azisaba.lifenewpve.libs.enchantments.LifeEnchantment;
 import net.azisaba.lifenewpve.libs.potion.LifePotion;
+import net.azisaba.lifenewpve.listeners.block.BlockListener;
 import net.azisaba.lifenewpve.listeners.chunk.ChunkListener;
 import net.azisaba.lifenewpve.listeners.enchant.EnchantListener;
 import net.azisaba.lifenewpve.listeners.entity.EntityListener;
@@ -52,6 +54,7 @@ public final class LifeNewPvE extends JavaPlugin implements SchedulerTask {
         key = new LifeKey(this);
 
         saveDefaultConfig();
+        registerDB();
         registerListeners();
         registerCommands();
 
@@ -60,7 +63,7 @@ public final class LifeNewPvE extends JavaPlugin implements SchedulerTask {
         updatePointData();
 
         Bukkit.getOnlinePlayers().forEach(p -> {
-            new Mana(p, this, ()-> ManaUtil.multiplyMana(p, 0.05), 200, 200);
+            new ManaRegen(p, this).autoRegen();
             new LifePotion(this, p).init();
         });
         registerLore();
@@ -68,6 +71,7 @@ public final class LifeNewPvE extends JavaPlugin implements SchedulerTask {
     @Override
     public void onDisable() {
         ManaListener.Modify.removeAll();
+        DBCon.close();
     }
 
     private void updatePointData() {
@@ -93,6 +97,7 @@ public final class LifeNewPvE extends JavaPlugin implements SchedulerTask {
         new ChunkListener().initialize(this);
         new ManaListener().initialize(this);
         new InventoryListener().initialize(this);
+        new BlockListener().initialize(this);
     }
 
     private void registerCommands() {
@@ -113,6 +118,10 @@ public final class LifeNewPvE extends JavaPlugin implements SchedulerTask {
             manaRegister(e);
             weaponRegister(e);
         });
+    }
+
+    private void registerDB() {
+        runAsync(()-> new DBCon().initialize(this));
     }
 
     private void manaDescription(@NotNull ItemEvent e) {

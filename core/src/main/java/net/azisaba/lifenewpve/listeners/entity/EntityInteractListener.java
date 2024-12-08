@@ -8,7 +8,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityInteractEvent;
 import org.jetbrains.annotations.NotNull;
 
-public class EntityInteractListener extends EntityListener implements VectorTask {
+public class EntityInteractListener extends EntityListener {
 
     @EventHandler
     public void onEntityInteract(@NotNull EntityInteractEvent event) {
@@ -16,7 +16,7 @@ public class EntityInteractListener extends EntityListener implements VectorTask
 
         for (Entity passenger : livingEntity.getPassengers()) {
             if (passenger instanceof Player player) {
-                applyVelocityAndRunTask(livingEntity, player, getVector(event.getBlock(), player));
+                VectorTask.applyVelocityAndRunTask(livingEntity, player, VectorTask.getVector(event.getBlock(), player));
                 return;
             }
         }

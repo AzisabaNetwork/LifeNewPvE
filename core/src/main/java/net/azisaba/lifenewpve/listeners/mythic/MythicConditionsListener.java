@@ -33,6 +33,9 @@ public class MythicConditionsListener extends MythicListener {
             case "canattack":
                 event.register(new CanAttack(event.getConfig()));
                 break;
+            case "weekofday":
+                event.register(new WeekOfDay(event.getConfig()));
+                break;
             default:
                 // 未知の条件には何もしません
                 break;

@@ -23,6 +23,7 @@ public class MythicListener implements Listener {
         pm.registerEvents(new MythicReloadListener(), plugin);
         pm.registerEvents(new MythicItemGenerateListener(), plugin);
         pm.registerEvents(new MythicDeathListener(), plugin);
+        pm.registerEvents(new MythicDamageDisplayListener(plugin), plugin);
     }
 
     public static boolean isMythic() {

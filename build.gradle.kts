@@ -10,7 +10,7 @@ plugins {
 
 allprojects {
     group = "net.azisaba"
-    version = "1.2.0"
+    version = "1.3.0"
     description = "LifeNewPvE"
 
     apply {
@@ -33,6 +33,7 @@ allprojects {
 
     dependencies {
         compileOnly("io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT")
+        implementation("com.zaxxer:HikariCP:6.0.0")
     }
 
     repositories {
@@ -49,6 +50,11 @@ allprojects {
         withType<JavaCompile> { options.encoding = "UTF-8" }
         withType<Javadoc> { options.encoding = "UTF-8" }
         base.archivesName.set("LifeNewPvE")
+
+        shadowJar {
+            relocate("org.jetbrains", "net.azisaba.lifenewpve.lib.org.jetbrains")
+            relocate("com.zaxxer.hikari", "net.azisaba.lifenewpve.lib.com.zaxxer")
+        }
     }
 }
 

@@ -6,4 +6,15 @@ Colors:
   GREEN: "§a§l"
   YELLOW: "§e§l"
 
+Database:
+  #jdbc:mariadb
+  use: false
+  scheme: jdbc:mysql
+  host: localhost
+  port: 3306
+  database: database
+  username: username
+  password: password
+  lootChest: loot_chest
+
 SavePoint:

@@ -9,10 +9,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public interface VectorTask {
+public class VectorTask {
 
-    default Vector getVector(@NotNull Block b, LivingEntity p) {
+    @Nullable
+    public static Vector getVector(@NotNull Block b, LivingEntity p) {
         if (b.getType() == Material.LIGHT_WEIGHTED_PRESSURE_PLATE) {
             return p.getEyeLocation().getDirection().clone().normalize().multiply(3).setY(4);
         } else if (b.getType() == Material.HEAVY_WEIGHTED_PRESSURE_PLATE) {
@@ -21,7 +23,7 @@ public interface VectorTask {
         return null;
     }
 
-    default void applyVelocityAndRunTask(LivingEntity livingEntity, Player player, Vector vector) {
+    public static void applyVelocityAndRunTask(LivingEntity livingEntity, Player player, Vector vector) {
         if (vector == null) return;
         applyVelocityWithSound(livingEntity, player, vector);
 
@@ -30,7 +32,7 @@ public interface VectorTask {
 
     }
 
-    default void applyVelocity(LivingEntity livingEntity, Player player, int i) {
+    public static void applyVelocity(LivingEntity livingEntity, Player player, int i) {
         if (i >= 10) {
             if (livingEntity == null || player == null) return;
             if (livingEntity.isOnGround()) return;
@@ -49,7 +51,7 @@ public interface VectorTask {
         JavaPlugin.getPlugin(LifeNewPvE.class).runSyncDelayed(()-> applyVelocity(livingEntity, player, finalI), 1);
     }
 
-    default void applyVelocityWithSound(@NotNull LivingEntity livingEntity, @NotNull Player player, Vector vector) {
+    public static void applyVelocityWithSound(@NotNull LivingEntity livingEntity, @NotNull Player player, Vector vector) {
         livingEntity.setVelocity(vector);
         player.playSound(player, Sound.BLOCK_PISTON_EXTEND, 1, 1);
     }

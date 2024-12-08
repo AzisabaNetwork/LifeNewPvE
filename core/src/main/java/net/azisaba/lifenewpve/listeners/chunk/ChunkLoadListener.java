@@ -25,9 +25,11 @@ public class ChunkLoadListener extends ChunkListener {
                 for (int z = 0; z < 16; z++) {
                     for (int y = 50; y < 150; y++) {
                         Block block = chunk.getBlock(x, y, z);
-                        if (block.getType() != Material.POWDER_SNOW) continue;
-                        lifeNewPvE.runSync(() -> block.setType(Material.SNOW_BLOCK));
-
+                        if (block.getType() == Material.POWDER_SNOW) {
+                            lifeNewPvE.runSync(() -> block.setType(Material.SNOW_BLOCK));
+                        } else if (block.getType() == Material.TALL_GRASS) {
+                            lifeNewPvE.runSync(() -> block.setType(Material.AIR));
+                        }
                     }
                 }
             }

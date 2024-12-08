@@ -4,9 +4,8 @@ import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import io.lumine.mythic.bukkit.events.MythicDamageEvent;
 import io.lumine.mythic.core.mobs.ActiveMob;
-import net.azisaba.common.DamageColor;
-import net.azisaba.common.NewPvE;
 import net.azisaba.lifenewpve.LifeNewPvE;
+import net.azisaba.lifenewpve.libs.DamageColor;
 import net.azisaba.minecraft.PacketHandler;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
@@ -19,25 +18,24 @@ import java.text.NumberFormat;
 import java.util.Map;
 import java.util.Random;
 
-public class MythicDamageDisplayListener extends MythicDamageListener {
+public class MythicDamageDisplayListener extends MythicListener {
 
-    public MythicDamageDisplayListener(LifeNewPvE lifeNewPvE) {
-        super(lifeNewPvE);
-    }
+    private final LifeNewPvE plugin;
 
     private static final Random RANDOM = new Random();
     private static final int DISPLAY_DURATION_TICKS = 30;
     private static final int RANDOM_BOUND = 4;
     private static final double RANDOM_SCALE = 0.5;
     private static final double BASE_Y_OFFSET = 1.8;
-    private static final String DAMAGE_PREFIX = "<white><bold>⚔";
+    private static final String DAMAGE_PREFIX = "§7§l⚔";
+
+    public MythicDamageDisplayListener(LifeNewPvE plugin) {
+        this.plugin = plugin;
+    }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onDisplay(@NotNull MythicDamageEvent event) {
         AbstractEntity attacker = event.getCaster().getEntity();
-        if (!attacker.isPlayer()) return;
-
-        Player player = (Player) attacker.asPlayer().getBukkitEntity();
         AbstractEntity victim = event.getTarget();
 
         if (!isDisplayConditionValid(victim)) return;
@@ -45,7 +43,8 @@ public class MythicDamageDisplayListener extends MythicDamageListener {
         ActiveMob mob = MythicBukkit.inst().getMobManager().getActiveMob(victim.getUniqueId()).orElse(null);
         if (mob == null) return;
 
-        showDamageDisplay(event, player, victim, mob);
+        Player p = attacker.isPlayer() ? (Player) attacker.asPlayer().getBukkitEntity() : null;
+        showDamageDisplay(event, p, victim, mob);
     }
 
     private boolean isDisplayConditionValid(@NotNull AbstractEntity victim) {
@@ -63,9 +62,17 @@ public class MythicDamageDisplayListener extends MythicDamageListener {
 
     private void displayDamageText(Player player, @NotNull Location location, Component component) {
         int id = RANDOM.nextInt(Integer.MAX_VALUE);
-        PacketHandler.spawnTextDisplay(player, location.getX(), location.getY(), location.getZ(), id);
-        PacketHandler.setTextDisplayMeta(player, id, component);
-        NewPvE.getTask().runSyncDelayed(() -> PacketHandler.removeTextDisplay(player, id), DISPLAY_DURATION_TICKS);
+        if (player == null) {
+            for (Player p : location.getNearbyPlayers(32)) {
+                PacketHandler.spawnTextDisplay(p, location.getX(), location.getY(), location.getZ(), id);
+                PacketHandler.setTextDisplayMeta(p, id, component);
+                plugin.runSyncDelayed(() -> PacketHandler.removeTextDisplay(p, id), DISPLAY_DURATION_TICKS);
+            }
+        } else {
+            PacketHandler.spawnTextDisplay(player, location.getX(), location.getY(), location.getZ(), id);
+            PacketHandler.setTextDisplayMeta(player, id, component);
+            plugin.runSyncDelayed(() -> PacketHandler.removeTextDisplay(player, id), DISPLAY_DURATION_TICKS);
+        }
     }
 
     private double formatDamage(double amount) {

@@ -4,6 +4,5 @@ plugins {
 
 dependencies {
     api(project(":api"))
-    api(project(":common"))
     paperweight.paperDevBundle("1.21.1-R0.1-SNAPSHOT")
 }

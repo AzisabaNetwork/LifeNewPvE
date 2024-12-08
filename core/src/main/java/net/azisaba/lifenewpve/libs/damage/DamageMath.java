@@ -60,12 +60,19 @@ public class DamageMath {
         }
 
         if (!victim.isPlayer()) {
-            return calculate(damage, a, t, 0);
+            return calculateMob(damage, a, t);
         } else {
             Player dmg = BukkitAdapter.adapt(victim.asPlayer());
             double offset = player_defence + getProtection(dmg);
             return calculate(damage, a, t, offset);
         }
+    }
+
+    private static double calculateMob(double damage, double a, double t) {
+        if (damage <= 0) return 0;
+        double armor = 2 * a + t;
+        double math = damage * getArmorScaleCut(armor, a);
+        return Double.isInfinite(math) || Double.isNaN(math) ? damage : math;
     }
 
     private static double calculate(double damage, double a, double t, double offset) {

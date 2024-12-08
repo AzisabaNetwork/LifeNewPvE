@@ -12,7 +12,7 @@ public class PlayerListener implements Listener {
         pm.registerEvents(new PlayerCommandListener(), lifeNewPvE);
         pm.registerEvents(new PlayerQuitListener(lifeNewPvE), lifeNewPvE);
         pm.registerEvents(new PlayerChangeWorldListener(), lifeNewPvE);
-        pm.registerEvents(new PlayerInteractListener(), lifeNewPvE);
+        pm.registerEvents(new PlayerInteractListener(lifeNewPvE), lifeNewPvE);
         pm.registerEvents(new PlayerPreAttackListener(), lifeNewPvE);
         pm.registerEvents(new PlayerJoinListener(lifeNewPvE), lifeNewPvE);
     }
