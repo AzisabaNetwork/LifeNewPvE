@@ -3,7 +3,7 @@ package net.azisaba.lifenewpve.libs.potion;
 import net.azisaba.lifenewpve.LifeNewPvE;
 import net.azisaba.lifenewpve.libs.event.PotionEffectEvent;
 import org.bukkit.NamespacedKey;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -15,11 +15,11 @@ public class PotionTimer extends BukkitRunnable {
 
     private final LifeNewPvE plugin;
 
-    private final Player player;
+    private final LivingEntity living;
 
-    public PotionTimer(LifeNewPvE plugin, Player player) {
+    public PotionTimer(LifeNewPvE plugin, LivingEntity living) {
         this.plugin = plugin;
-        this.player = player;
+        this.living = living;
     }
 
     private static final int max_potions = 20;
@@ -27,7 +27,7 @@ public class PotionTimer extends BukkitRunnable {
     @Override
     public void run() {
         stop();
-        PersistentDataContainer pc = player.getPersistentDataContainer();
+        PersistentDataContainer pc = living.getPersistentDataContainer();
         List<NamespacedKey> rem = new ArrayList<>();
 
         for (int i = 0; i < max_potions; i++) {
@@ -50,7 +50,7 @@ public class PotionTimer extends BukkitRunnable {
                 pc.set(key, PersistentDataType.STRING, data + ":" + level + ":" + seconds);
                 remove = false;
             }
-            new PotionEffectEvent(player, data, level, seconds, remove).callEvent();
+            new PotionEffectEvent(living, data, level, seconds, remove).callEvent();
         }
 
         for (NamespacedKey key : rem) {
@@ -63,8 +63,15 @@ public class PotionTimer extends BukkitRunnable {
     }
 
     private void stop() {
-        if (player == null || !player.isOnline()) {
-            cancel();
+        if (living != null) {
+            for (int i = 0; i < max_potions; i++) {
+                if (!living.getPersistentDataContainer().has(new NamespacedKey(plugin, "potions_" + i), PersistentDataType.STRING)) {
+                    continue;
+                }
+                return;
+            }
+            LifePotion.stop(living.getUniqueId());
         }
+        cancel();
     }
 }

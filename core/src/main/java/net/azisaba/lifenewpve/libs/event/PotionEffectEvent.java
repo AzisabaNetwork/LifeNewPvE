@@ -1,6 +1,6 @@
 package net.azisaba.lifenewpve.libs.event;
 
-import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
@@ -9,7 +9,7 @@ public class PotionEffectEvent extends Event {
 
     private static final HandlerList handler = new HandlerList();
 
-    private final Player player;
+    private final LivingEntity living;
 
 
     private final String name;
@@ -21,17 +21,17 @@ public class PotionEffectEvent extends Event {
     private final boolean remove;
 
 
-    public PotionEffectEvent(Player player, @NotNull String name, int level, long seconds, boolean remove) {
+    public PotionEffectEvent(LivingEntity living, @NotNull String name, int level, long seconds, boolean remove) {
         super(true);
-        this.player = player;
+        this.living = living;
         this.name = name;
         this.level = level;
         this.seconds = seconds;
         this.remove = remove;
     }
 
-    public Player getPlayer() {
-        return player;
+    public LivingEntity getLivingEntity() {
+        return living;
     }
 
 

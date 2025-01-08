@@ -13,9 +13,11 @@ import net.azisaba.lifenewpve.libs.damage.DamageMath;
 import net.azisaba.lifenewpve.utils.CoolTime;
 import org.bukkit.GameMode;
 import org.bukkit.NamespacedKey;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
@@ -45,7 +47,16 @@ public class MythicDamageListener extends MythicListener {
 
     private double calculateFinalDamage(@NotNull MythicDamageEvent event) {
         AbstractEntity target = event.getTarget();
-        return DamageMath.getCalculatedDamage(event.getDamage(), target.getArmor(), target.getArmorToughness(), target, event.getCaster().getEntity(), event.getDamageMetadata().getElement());
+        ItemStack item = null;
+        LivingEntity l = ((LivingEntity) BukkitAdapter.adapt(event.getCaster().getEntity()));
+        if (l != null && l.getEquipment() != null) {
+            item = l.getEquipment().getItemInMainHand();
+        }
+
+        int chance = 5;
+        boolean crit = LifeNewPvE.RANDOM.nextInt(100) < chance;
+
+        return DamageMath.getCalculatedDamage(event.getDamage(), target.getArmor(), target.getArmorToughness(), target, event.getCaster().getEntity(), event.getDamageMetadata().getElement(), item, crit);
     }
 
     private static final Multimap<Class<?>, UUID> ct = HashMultimap.create();

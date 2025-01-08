@@ -1,7 +1,9 @@
 package net.azisaba.lifenewpve.mana;
 
 import net.azisaba.api.mana.IManaBase;
+import net.azisaba.api.utils.ItemPDC;
 import net.azisaba.lifenewpve.LifeNewPvE;
+import net.azisaba.lifenewpve.listeners.potion.PotionEffectListener;
 import net.azisaba.lifenewpve.mana.event.ManaModifiedEvent;
 import net.azisaba.lifenewpve.mana.event.ManaModifyEvent;
 import org.bukkit.NamespacedKey;
@@ -12,7 +14,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
-import net.azisaba.api.utils.ItemPDC;
 
 import java.text.NumberFormat;
 import java.util.HashMap;
@@ -24,7 +25,7 @@ public class ManaBase implements IManaBase, ItemPDC {
 
     protected final LifeNewPvE plugin;
 
-    private final String mana_value = "net/azisaba/api/mana";
+    private final String mana_value = "mana";
 
     private final String max_mana_value = "max_mana";
 
@@ -47,7 +48,8 @@ public class ManaBase implements IManaBase, ItemPDC {
     @Override
     public double getMaxMana() {
         String string = pc.get(plugin.getKey().getOrCreate(max_mana_value), PersistentDataType.STRING);
-        return string == null ? 500 + ManaUtil.getItemMana(player, "max_mana") : Double.parseDouble(string) + ManaUtil.getItemMana(player, "max_mana");
+        int i = PotionEffectListener.getPotionEffectLevel(player, "max_mana");
+        return string == null ? 500 + ManaUtil.getItemMana(player, "max_mana") + i : Double.parseDouble(string) + ManaUtil.getItemMana(player, "max_mana") + i ;
     }
 
     @Override
@@ -79,7 +81,7 @@ public class ManaBase implements IManaBase, ItemPDC {
     @NotNull
     public static Map<String, String> getManaPlaceholderMap() {
         Map<String, String> map = new HashMap<>();
-        map.put("net/azisaba/api/mana", "§d");
+        map.put("mana", "§d");
         return map;
     }
 

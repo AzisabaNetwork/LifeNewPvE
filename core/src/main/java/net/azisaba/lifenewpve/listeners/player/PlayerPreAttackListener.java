@@ -8,6 +8,7 @@ import io.lumine.mythic.api.skills.SkillCaster;
 import io.lumine.mythic.api.skills.damage.DamageMetadata;
 import io.lumine.mythic.bukkit.BukkitAdapter;
 import io.lumine.mythic.bukkit.MythicBukkit;
+import io.lumine.mythic.core.items.MythicItem;
 import io.lumine.mythic.core.mobs.ActiveMob;
 import io.papermc.paper.event.player.PrePlayerAttackEntityEvent;
 import org.bukkit.Sound;
@@ -36,6 +37,16 @@ public class PlayerPreAttackListener extends PlayerListener {
         }
 
         ItemStack mainHandItem = player.getInventory().getItemInMainHand();
+        String mmid = MythicBukkit.inst().getItemManager().getMythicTypeFromItem(mainHandItem);
+        event.setCancelled(true);
+
+        if (mmid == null) return;
+
+        MythicItem item = MythicBukkit.inst().getItemManager().getItem(mmid).orElse(null);
+        if (item == null) return;
+        if (item.getGroup() == null) return;
+        if (!item.getGroup().equals("Melee-Weapon")) return;
+
         boolean isCriticalHit = player.getFallDistance() > 0.25F;
         boolean isSweepingAttack = mainHandItem.getType().toString().toUpperCase().endsWith("SWORD");
         SkillCaster caster = MythicBukkit.inst().getSkillManager().getCaster(adaptedPlayer);

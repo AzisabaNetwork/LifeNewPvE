@@ -9,7 +9,7 @@ import io.lumine.mythic.api.skills.SkillResult;
 import io.lumine.mythic.bukkit.BukkitAdapter;
 import net.azisaba.lifenewpve.LifeNewPvE;
 import net.azisaba.lifenewpve.libs.potion.LifePotion;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
 
 public class AddLifePotion implements ISkillMechanic, ITargetedEntitySkill {
@@ -31,9 +31,10 @@ public class AddLifePotion implements ISkillMechanic, ITargetedEntitySkill {
 
     @Override
     public SkillResult castAtEntity(SkillMetadata skillMetadata, @NotNull AbstractEntity abstractEntity) {
-        if (!abstractEntity.isPlayer()) return SkillResult.CONDITION_FAILED;
-        Player p = BukkitAdapter.adapt(abstractEntity.asPlayer());
-        new LifePotion(plugin, p).addPotion(name, level, seconds);
+        if (!(BukkitAdapter.adapt(abstractEntity) instanceof LivingEntity living)) return SkillResult.CONDITION_FAILED;
+        LifePotion potion = new LifePotion(plugin, living);
+        potion.addPotion(name, level, seconds);
+        potion.init();
         return SkillResult.SUCCESS;
     }
 }

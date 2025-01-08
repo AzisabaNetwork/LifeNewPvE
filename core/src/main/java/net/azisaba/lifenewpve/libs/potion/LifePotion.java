@@ -2,34 +2,41 @@ package net.azisaba.lifenewpve.libs.potion;
 
 import net.azisaba.lifenewpve.LifeNewPvE;
 import org.bukkit.NamespacedKey;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class LifePotion {
 
     private final LifeNewPvE plugin;
 
-    private final Player player;
+    private final LivingEntity living;
 
-    public LifePotion(LifeNewPvE plugin, Player player) {
+    private static final Set<UUID> ID = new HashSet<>();
+
+    public LifePotion(LifeNewPvE plugin, LivingEntity living) {
         this.plugin = plugin;
-        this.player = player;
+        this.living = living;
     }
 
     public void init() {
-        PotionTimer timer = new PotionTimer(plugin, player);
+        if (ID.contains(living.getUniqueId())) return;
+        PotionTimer timer = new PotionTimer(plugin, living);
         timer.runTaskTimerAsynchronously(plugin, 20, 20);
+        ID.add(living.getUniqueId());
+    }
+
+    public static void stop(UUID uuid) {
+        ID.remove(uuid);
     }
 
     public List<String> getPotionsData() {
         List<String> list = new ArrayList<>();
-        PersistentDataContainer pc = player.getPersistentDataContainer();
+        PersistentDataContainer pc = living.getPersistentDataContainer();
 
         for (NamespacedKey key : pc.getKeys()) {
             if (!key.namespace().equals(plugin.getName())) continue;
@@ -43,7 +50,7 @@ public class LifePotion {
     }
 
     public boolean addPotion(String data, int level, long seconds) {
-        PersistentDataContainer pc = player.getPersistentDataContainer();
+        PersistentDataContainer pc = living.getPersistentDataContainer();
         for (int i = 0; i < PotionTimer.getMaxPotions(); i++) {
             NamespacedKey key = new NamespacedKey(plugin, "potions_" + i);
             if (!pc.has(key, PersistentDataType.STRING)) {

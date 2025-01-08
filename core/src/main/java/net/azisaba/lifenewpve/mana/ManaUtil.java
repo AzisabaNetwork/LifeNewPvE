@@ -2,6 +2,7 @@ package net.azisaba.lifenewpve.mana;
 
 import net.azisaba.lifenewpve.LifeNewPvE;
 import net.azisaba.lifenewpve.libs.enchantments.LifeEnchantment;
+import net.azisaba.lifenewpve.listeners.potion.PotionEffectListener;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -23,6 +24,9 @@ public class ManaUtil {
     public static void multiplyMana(Player player, double multiplier) {
         ManaBase base = new ManaBase(player, LifeNewPvE.getInstance());
         double m = base.getMaxMana() * multiplier;
+
+        double d = PotionEffectListener.getPotionEffectLevel(player, "mana_modify") / 100.0;
+        m /= 1 + d;
         base.setMana(Math.min(m + base.getMana(), base.getMaxMana()));
     }
 

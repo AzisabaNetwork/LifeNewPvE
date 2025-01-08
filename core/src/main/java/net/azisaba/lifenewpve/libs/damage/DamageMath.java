@@ -2,21 +2,23 @@ package net.azisaba.lifenewpve.libs.damage;
 
 import io.lumine.mythic.api.adapters.AbstractEntity;
 import io.lumine.mythic.bukkit.BukkitAdapter;
-import net.azisaba.lifenewpve.libs.enchantments.LifeEnchantment;
-import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.Player;
+import net.azisaba.lifenewpve.LifeNewPvE;
+import net.azisaba.lifenewpve.libs.potion.LifePotion;
+import net.azisaba.lifenewpve.listeners.potion.PotionEffectListener;
+import net.azisaba.lifenewpve.utils.key.LifeKey;
+import org.bukkit.NamespacedKey;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.text.NumberFormat;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 public class DamageMath {
-
-    private static final double player_defence = 20.0;
 
     private static final long defence_amount_per_add = 5;
 
@@ -35,107 +37,70 @@ public class DamageMath {
         return "+" + defence_amount_per_add;
     }
 
-    @SuppressWarnings("unused")
-    public double getPlayerDefence() {
-        return player_defence;
+    public static double getCalculatedDamage(double damage, double a, double t, @NotNull AbstractEntity victim, @NotNull AbstractEntity attacker, String element, ItemStack item, boolean isCritical) {
+        return damage
+                * getWeaponMath(item)
+                * getATKMath(attacker, a, t)
+                * getPotionMath((LivingEntity) BukkitAdapter.adapt(attacker), (LivingEntity) BukkitAdapter.adapt(victim), element)
+                * getCriticalMath((LivingEntity) BukkitAdapter.adapt(attacker), isCritical);
     }
 
-    @SuppressWarnings("unused")
-    public double getLevelDefence() {
-        return defence_amount_per_add;
+    private static double getATKMath(@NotNull AbstractEntity attacker, double defence, double toughness) {
+        double atkDamage = attacker.getDamage();
+        return 1 + (atkDamage - defence * (1 + toughness / 100)) / 100;
     }
 
-    @SuppressWarnings("unused")
-    public double getElementMultiplier() {
-        return damage_multiplier;
+    private static double getWeaponLevel(ItemStack item) {
+        if (item == null) return 0;
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return 0;
+        NamespacedKey key = new LifeKey(LifeNewPvE.getInstance()).getOrCreate("weapon_level");
+        if (!meta.getPersistentDataContainer().has(key)) return 0;
+        String s = meta.getPersistentDataContainer().get(key, PersistentDataType.STRING);
+        if (s == null) return 0;
+        return Double.parseDouble(s);
     }
 
-    public static double getCalculatedDamage(double damage, double a, double t, @NotNull AbstractEntity victim, @NotNull AbstractEntity attacker, String element) {
-        if (attacker.isPlayer()) {
-            Player atk = BukkitAdapter.adapt(attacker.asPlayer());
-            if (element != null) {
-                damage *= getElementDamage(atk);
-            }
-            damage *= getAllDamage(atk);
-        }
+    private static double getWeaponMath(ItemStack item) {
+        return 1 + getWeaponLevel(item) / 100;
+    }
 
-        if (!victim.isPlayer()) {
-            return calculateMob(damage, a, t);
+    private static double getPotionMath(@NotNull LivingEntity attacker, @NotNull LivingEntity victim, String element) {
+        return 1 + (getPotionBuff(attacker, element) + getPotionDebuff(victim, element));
+    }
+
+    private static double getCriticalMath(LivingEntity attacker, boolean isCritical) {
+        if (isCritical) {
+            return 1 + PotionEffectListener.getPotionEffectLevel(attacker, "critical_damage");
         } else {
-            Player dmg = BukkitAdapter.adapt(victim.asPlayer());
-            double offset = player_defence + getProtection(dmg);
-            return calculate(damage, a, t, offset);
+            return 1+ PotionEffectListener.getPotionEffectLevel(attacker, "no_critical_damage");
         }
-    }
-
-    private static double calculateMob(double damage, double a, double t) {
-        if (damage <= 0) return 0;
-        double armor = 2 * a + t;
-        double math = damage * getArmorScaleCut(armor, a);
-        return Double.isInfinite(math) || Double.isNaN(math) ? damage : math;
-    }
-
-    private static double calculate(double damage, double a, double t, double offset) {
-        if (damage <= 0) return 0;
-        double armor = 2 * a + t + offset;
-        damage = getArmorRewardCut(damage, armor, t);
-
-        double math = getDamageScaleCut(damage, armor) * getArmorScaleCut(armor, a);
-        return Double.isInfinite(math) || Double.isNaN(math) ? damage : math;
-    }
-
-    private static double getDamageScaleCut(double damage, double armor) {
-        double f = 1 + damage;
-        return  Math.max(damage / (armor + f) * f, 0);
-    }
-
-    private static double getArmorScaleCut(double armor, double a) {
-        double m = armor * 2 - a;
-        return  Math.pow(m / (m + armor), 2);
-    }
-
-    private static double getArmorRewardCut(double damage, double armor, double t) {
-        if (armor < 0) {
-            return damage * Math.pow(1.025, Math.abs(armor));
-        } else {
-            damage *= Math.pow(0.995, Math.abs(t));
-        }
-        return damage;
-    }
-
-    protected static double getProtection(@NotNull Player p) {
-       double protection = 0;
-       for (ItemStack i : getItemInventory(p)) {
-           protection += getEnchantmentInSlot(i, LifeEnchantment.ALL_DEFENCE, defence_amount_per_add, 0);
-       }
-       return protection;
-    }
-
-    protected static double getElementDamage(@NotNull Player p) {
-        double element = 1;
-        for (ItemStack i : getItemInventory(p)) {
-            element *= getEnchantmentInSlot(i, LifeEnchantment.ALL_ELEMENT_DAMAGE, damage_multiplier, 1);
-        }
-        return element;
-    }
-
-    protected static double getAllDamage(@NotNull Player p) {
-        double all = 1;
-        for (ItemStack i : getItemInventory(p)) {
-            all *= getEnchantmentInSlot(i, LifeEnchantment.ALL_DAMAGE, damage_multiplier, 1);
-        }
-        return all;
     }
 
     @NotNull
-    protected static Set<ItemStack> getItemInventory(@NotNull Player p) {
-        Set<ItemStack> set = new HashSet<>(Arrays.stream(p.getInventory().getArmorContents()).toList());
-        set.add(p.getInventory().getItemInMainHand());
-        return set;
+    protected static Map<String, Integer> getPotion(@NotNull LivingEntity living) {
+        LifePotion potion = new LifePotion(LifeNewPvE.getInstance(), living);
+        Map<String, Integer> map = new HashMap<>();
+        for (int i = 0; potion.getPotionsData().size() > i; i++) {
+           String raw = potion.getPotionsData().get(i);
+
+           String[] split = raw.split(":");
+           String type = split[0];
+           int level = Integer.parseInt(split[1]);
+           map.merge(type, level, Integer::sum);
+        }
+        return map;
     }
 
-    protected static double getEnchantmentInSlot(ItemStack i, Enchantment select, double multiplier, int result) {
-        if (i == null || !i.hasItemMeta() || select == null || !i.getItemMeta().hasEnchant(select)) return result;
-        return (i.getItemMeta().getEnchantLevel(select) * multiplier) + result;
+    protected static double getPotionBuff(@NotNull LivingEntity living, String element) {
+        Map<String, Integer> maps = getPotion(living);
+        if (maps.isEmpty()) return 1;
+        return maps.getOrDefault("+" + element, 1);
+    }
+
+    protected static double getPotionDebuff(@NotNull LivingEntity living, String element) {
+        Map<String, Integer> maps = getPotion(living);
+        if (maps.isEmpty()) return 1;
+        return maps.getOrDefault("-" + element, 1);
     }
 }

@@ -7,7 +7,6 @@ import net.azisaba.api.SchedulerTask;
 import net.azisaba.lifenewpve.commands.*;
 import net.azisaba.lifenewpve.database.DBCon;
 import net.azisaba.lifenewpve.libs.enchantments.LifeEnchantment;
-import net.azisaba.lifenewpve.libs.potion.LifePotion;
 import net.azisaba.lifenewpve.listeners.block.BlockListener;
 import net.azisaba.lifenewpve.listeners.chunk.ChunkListener;
 import net.azisaba.lifenewpve.listeners.enchant.EnchantListener;
@@ -17,9 +16,13 @@ import net.azisaba.lifenewpve.listeners.mv.MultiverseListener;
 import net.azisaba.lifenewpve.listeners.mv.MultiverseWorldDeleteListener;
 import net.azisaba.lifenewpve.listeners.mythic.MythicListener;
 import net.azisaba.lifenewpve.listeners.player.PlayerListener;
+import net.azisaba.lifenewpve.listeners.potion.PotionListener;
 import net.azisaba.lifenewpve.listeners.prepare.PrepareListener;
 import net.azisaba.lifenewpve.listeners.world.WorldListener;
-import net.azisaba.lifenewpve.mana.*;
+import net.azisaba.lifenewpve.mana.ManaBooster;
+import net.azisaba.lifenewpve.mana.ManaRegen;
+import net.azisaba.lifenewpve.mana.ManaSteal;
+import net.azisaba.lifenewpve.mana.ManaUtil;
 import net.azisaba.lifenewpve.mana.listener.ManaListener;
 import net.azisaba.lifenewpve.utils.key.LifeKey;
 import net.azisaba.loreeditor.api.event.EventBus;
@@ -62,10 +65,7 @@ public final class LifeNewPvE extends JavaPlugin implements SchedulerTask {
         spawnNotification();
         updatePointData();
 
-        Bukkit.getOnlinePlayers().forEach(p -> {
-            new ManaRegen(p, this).autoRegen();
-            new LifePotion(this, p).init();
-        });
+        Bukkit.getOnlinePlayers().forEach(p -> new ManaRegen(p, this).autoRegen());
         registerLore();
     }
     @Override
@@ -98,6 +98,7 @@ public final class LifeNewPvE extends JavaPlugin implements SchedulerTask {
         new ManaListener().initialize(this);
         new InventoryListener().initialize(this);
         new BlockListener().initialize(this);
+        new PotionListener().initialize(this);
     }
 
     private void registerCommands() {

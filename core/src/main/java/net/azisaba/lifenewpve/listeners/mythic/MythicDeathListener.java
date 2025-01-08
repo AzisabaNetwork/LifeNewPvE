@@ -1,6 +1,7 @@
 package net.azisaba.lifenewpve.listeners.mythic;
 
 import io.lumine.mythic.bukkit.events.MythicMobDeathEvent;
+import net.azisaba.lifenewpve.libs.potion.LifePotion;
 import net.azisaba.lifenewpve.mana.ManaUtil;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -16,5 +17,6 @@ public class MythicDeathListener extends MythicListener {
         if (!(e.getEntity() instanceof LivingEntity)) return;
 
         ManaUtil.addMana(p, ManaUtil.getManaSteal(p));
+        LifePotion.stop(e.getEntity().getUniqueId());
     }
 }

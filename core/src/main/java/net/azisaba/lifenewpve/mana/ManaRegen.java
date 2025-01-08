@@ -4,6 +4,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import net.azisaba.api.mana.IManaRegen;
 import net.azisaba.lifenewpve.LifeNewPvE;
+import net.azisaba.lifenewpve.listeners.potion.PotionEffectListener;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitTask;
@@ -30,7 +31,9 @@ public class ManaRegen extends ManaBase implements IManaRegen {
 
     @Override
     public void autoRegen() {
-        Mana m = new Mana(player, plugin, ()-> ManaUtil.multiplyMana(player, 0.05), 200, 200);
+        double multi = 0.05;
+        double d = PotionEffectListener.getPotionEffectLevel(player, "mana_regen") / 100.0;
+        Mana m = new Mana(player, plugin, ()-> ManaUtil.multiplyMana(player, multi + d), 200, 200);
         TASKS.put(player.getUniqueId(), m.getTask());
     }
 

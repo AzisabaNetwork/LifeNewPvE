@@ -1,6 +1,5 @@
 package net.azisaba.lifenewpve.listeners.player;
 
-import net.azisaba.lifenewpve.commands.ModeCommand;
 import net.azisaba.lifenewpve.listeners.mv.MultiverseListener;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -16,8 +15,5 @@ public class PlayerChangeWorldListener extends PlayerListener {
         if (MultiverseListener.isResetWorld(p.getWorld().getName())) {
             p.teleport(e.getFrom().getSpawnLocation());
         }
-
-        //ワールドを変えたら運営モードをoffにする。
-        ModeCommand.switchMode(p, false);
     }
 }
